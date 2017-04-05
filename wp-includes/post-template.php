@@ -230,6 +230,18 @@ function get_the_guid( $post = 0 ) {
 function the_content( $more_link_text = null, $strip_teaser = false) {
 	$content = get_the_content( $more_link_text, $strip_teaser );
 
+	// switch (str_replace(home_url(), "", get_permalink())) {
+	// 	case "/city/":
+	// 		$content = get_the_content_city( $more_link_text, $strip_teaser );
+	// 		break;
+	// 	case "/time_difference/":
+	// 		$content = get_the_content_time_difference( $more_link_text, $strip_teaser );
+	// 		break;
+	// 	default:
+	// 		$content = get_the_content( $more_link_text, $strip_teaser );
+	// 		break;
+	// }
+
 	/**
 	 * Filters the post content.
 	 *
@@ -242,40 +254,41 @@ function the_content( $more_link_text = null, $strip_teaser = false) {
 	echo $content;	
 }
 
-function get_the_content_city( $more_link_text = null, $strip_teaser = false ) {
+function get_the_content_city() {
 	// global $page, $more, $preview, $pages, $multipage;
-	global $page, $more, $preview, $pages, $multipage, $wpdb;
+	// global $page, $more, $preview, $pages, $multipage, $wpdb;
+	global $wpdb;
 
-	$post = get_post();
+	// $post = get_post();
 
-	if ( null === $more_link_text ) {
-		$more_link_text = sprintf(
-			'<span aria-label="%1$s">%2$s</span>',
-			sprintf(
-				/* translators: %s: Name of current post */
-				__( 'Continue reading %s' ),
-				the_title_attribute( array( 'echo' => false ) )
-			),
-			__( '(more&hellip;)' )
-		);
-	}
+	// if ( null === $more_link_text ) {
+	// 	$more_link_text = sprintf(
+	// 		'<span aria-label="%1$s">%2$s</span>',
+	// 		sprintf(
+	// 			/* translators: %s: Name of current post */
+	// 			__( 'Continue reading %s' ),
+	// 			the_title_attribute( array( 'echo' => false ) )
+	// 		),
+	// 		__( '(more&hellip;)' )
+	// 	);
+	// }
 
-	$output = '';
-	$has_teaser = false;
+	// $output = '';
+	// $has_teaser = false;
 
-	// If post password required and it doesn't match the cookie.
-	if ( post_password_required( $post ) )
-		return get_the_password_form( $post );
+	// // If post password required and it doesn't match the cookie.
+	// if ( post_password_required( $post ) )
+	// 	return get_the_password_form( $post );
 
-	if ( $page > count( $pages ) ) // if the requested page doesn't exist
-		$page = count( $pages ); // give them the highest numbered page that DOES exist
+	// if ( $page > count( $pages ) ) // if the requested page doesn't exist
+	// 	$page = count( $pages ); // give them the highest numbered page that DOES exist
 
-	$content = $pages[$page - 1];
+	// $content = $pages[$page - 1];
 
 	$sql = "
 		SELECT 
 		  area_id
-		, count(area_id) AS cnt
+		, COUNT(area_id) AS cnt
 		FROM $wpdb->m_country 
 		GROUP BY area_id
 	";
@@ -284,7 +297,7 @@ function get_the_content_city( $more_link_text = null, $strip_teaser = false ) {
 
 	$sql2 = "
 		SELECT 
-		  c.id
+		  c.country_id
 		, c.country_name
 		, c.english_name
 		, c.area_id
@@ -292,7 +305,6 @@ function get_the_content_city( $more_link_text = null, $strip_teaser = false ) {
 		, c.flag
 		, c.capital
 		, c.city
-		, c.time_difference
 		FROM $wpdb->m_country c
 		INNER JOIN $wpdb->m_area a
 		ON a.area_id = c.area_id
@@ -301,6 +313,7 @@ function get_the_content_city( $more_link_text = null, $strip_teaser = false ) {
 	$countrys = bzb_object2array($results2);
 
 	$output = '
+		今回は、アジア各国の首都・主な都市の一覧をまとめてみました。
 		<table border="1" cellpadding="3" width="100%">
 			<tr>
 				<th width="40px">No</th>
@@ -309,16 +322,15 @@ function get_the_content_city( $more_link_text = null, $strip_teaser = false ) {
 				<th width="140px">国名<br/>英語国名</th>
 				<th width="220px">首都</th>
 				<th width="130px">主な都市</th>
-				<th width="50px">時差</th>
 			</tr>
 	';
 	$row = 0;
 	$areaid = "";
-	foreach ($countrys as $country){
+	foreach ($countrys as $country) {
 		$output .= '
 			<tr>
-		    	<td style="text-align:right">' .$country['id'] .'</td>';
-		// echo '    <td>' .$country['area_id'] .'</td>';
+		    	<td style="text-align:right">' .$country['country_id'] .'</td>';
+
 		if($areaid != $country['area_id']){
 			$output .= '    <td style="text-align:center" rowspan="';
 			$output .= $areas[$row]['cnt'] .'">' .$country['area_name'] .'</td>';
@@ -326,74 +338,284 @@ function get_the_content_city( $more_link_text = null, $strip_teaser = false ) {
 			$row++;
 		}
 
-		// echo '    <td>' .$country['flag'] .'</td>';
 		$output .=  
 			'    <td>'
 			.str_replace("@@@", $country['flag']
 				,'        <img class="flag" alt="@@@" src="http://travel-a.up.seesaa.net/image/@@@ ">')
-		// echo '        <img class="flag" alt="' 
-		// 	.$country['flag'] 
-		// 	.'" src="http://travel-a.up.seesaa.net/image/' 
-		// 	.$country['flag'] 
-		// 	.'">';
 			.'    </td>'
 			.'    <td>' .$country['country_name'] .'<br/>' .$country['english_name'] .'</td>'
 			.'    <td>' .$country['capital'] .'</td>'
-			// echo '    <td>' .$country['city'] .'</td>';
 			.'    <td>'
 			.str_replace(",", "<br/>", $country['city'])
 			.'    </td>'
-			.'    <td style="text-align:right">'
-			.str_replace(",", "<br/>", $country['time_difference'])
-			.'    </td>'
-			// echo '    <td style="text-align:right">' .floatval($country['time_difference']) .'</td>';
+			// .'    <td style="text-align:right">'
+			// .str_replace(",", "<br/>", $country['time_difference'])
+			// .'    </td>'
 			.'</tr>';
 	}
 	$output .= '</table>';
 
 
 
-	if ( preg_match( '/<!--more(.*?)?-->/', $content, $matches ) ) {
-		$content = explode( $matches[0], $content, 2 );
-		if ( ! empty( $matches[1] ) && ! empty( $more_link_text ) )
-			$more_link_text = strip_tags( wp_kses_no_null( trim( $matches[1] ) ) );
+	// if ( preg_match( '/<!--more(.*?)?-->/', $content, $matches ) ) {
+	// 	$content = explode( $matches[0], $content, 2 );
+	// 	if ( ! empty( $matches[1] ) && ! empty( $more_link_text ) )
+	// 		$more_link_text = strip_tags( wp_kses_no_null( trim( $matches[1] ) ) );
 
-		$has_teaser = true;
-	} else {
-		$content = array( $content );
+	// 	$has_teaser = true;
+	// } else {
+	// 	$content = array( $content );
+	// }
+
+	// if ( false !== strpos( $post->post_content, '<!--noteaser-->' ) && ( ! $multipage || $page == 1 ) )
+	// 	$strip_teaser = true;
+
+	// $teaser = $content[0];
+
+	// if ( $more && $strip_teaser && $has_teaser )
+	// 	$teaser = '';
+
+	// // $output .= $teaser;
+
+	// if ( count( $content ) > 1 ) {
+	// 	if ( $more ) {
+	// 		$output .= '<span id="more-' . $post->ID . '"></span>' . $content[1];
+	// 	} else {
+	// 		if ( ! empty( $more_link_text ) )
+
+	// 			/**
+	// 			 * Filters the Read More link text.
+	// 			 *
+	// 			 * @since 2.8.0
+	// 			 *
+	// 			 * @param string $more_link_element Read More link element.
+	// 			 * @param string $more_link_text    Read More text.
+	// 			 */
+	// 			$output .= apply_filters( 'the_content_more_link', ' <a href="' . get_permalink() . "#more-{$post->ID}\" class=\"more-link\">$more_link_text</a>", $more_link_text );
+	// 		$output = force_balance_tags( $output );
+	// 	}
+	// }
+
+	// if ( $preview ) // Preview fix for JavaScript bug with foreign languages.
+	// 	$output =	preg_replace_callback( '/\%u([0-9A-F]{4})/', '_convert_urlencoded_to_entities', $output );
+
+	return $output;
+}
+
+function get_the_content_time_difference() {
+	global $wpdb;
+
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		INNER JOIN $wpdb->m_time t
+		ON c.country_id = t.country_id
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
+
+	$sql1 = "
+		SELECT 
+		  country_id
+		, COUNT(country_id) AS cnt
+		FROM $wpdb->m_time t
+		GROUP BY country_id
+	";
+	$results1 = $wpdb->get_results($sql1);
+	$countrys = bzb_object2array($results1);
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.english_name
+		, c.area_id
+		, a.area_name
+		, t.area
+		, t.time_difference
+		, t.minus_flg
+		FROM $wpdb->m_time t
+		INNER JOIN $wpdb->m_country c
+		ON c.country_id = t.country_id
+		INNER JOIN $wpdb->m_area a
+		ON a.area_id = c.area_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$times = bzb_object2array($results2);
+
+	$output = 
+		'今回は、アジア各国の時差をまとめてみました。
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地<br/>域</th>
+				<th width="120px">国名</th>
+				<th width="150px">国内時差地図へ</th>
+				<th width="110px">日本との時差</th>
+				<th width="130px">協定世界時(UTC)</th>
+			</tr>';
+
+	$row = 0;
+	$row_c = 0;
+	$areaid = "";
+	$contryid = "";
+	foreach ($times as $time) {
+		$output .= sprintf('
+			<tr>');
+		if($areaid != $time['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%1s">%2s</td>'
+				,$areas[$row]['cnt']
+				,$time['area_name']);
+			$areaid = $time['area_id'];
+			$row++;
+		}
+
+		if($contryid != $time['country_id']) {
+			$city = '';
+			if($countrys[$row_c]["cnt"] > 1){
+				$city = sprintf('<a href="%1s">%2s</a>'
+				,"#" .$time['english_name']
+				,$time['country_name'] ."時間へ");
+			}
+			$output .=  sprintf('
+			    <td rowspan="%1s">%2s</td>
+			    <td rowspan="%3s">%4s</td>'
+				,$countrys[$row_c]["cnt"]
+				,$time['country_name']
+				,$countrys[$row_c]["cnt"]
+				// ,($countrys[$row_c]["cnt"]==1) ? "" : "※");
+				,$city);
+			$contryid = $time['country_id'];
+			$row_c++;
+		}
+
+		$start = explode(":", $time['time_difference']);
+		$time_difference = '';
+		if($time['minus_flg']=='1') {
+			$time_difference = '-';
+		}
+		$time_difference .= intval($start[0]) ."時間";
+		$hour = 9 - intval($start[0]); 
+		$utc = "UTC+" .$hour;
+		if($start[1] != "00"){
+			$time_difference .= intval($start[1]) ."分";
+			$min = 60 - intval($start[1]);
+			$hour--;
+			$utc = "UTC+" .$hour .":" .$min;
+		}
+
+		$output .=  sprintf('
+			    <td>%1s</td>
+			    <td>%2s</td>
+			</tr>'
+			// ,$time['area']
+			,$time_difference
+			// ,$time['disp_time_difference']
+			
+			// ,$time['time_difference']->format('H:i')
+			// ,$time['utc']);
+			// // ,"UTC+" .date('H:i', $utc));			
+			,$utc);
 	}
+	$output .= '
+		</table>';
 
-	if ( false !== strpos( $post->post_content, '<!--noteaser-->' ) && ( ! $multipage || $page == 1 ) )
-		$strip_teaser = true;
-
-	$teaser = $content[0];
-
-	if ( $more && $strip_teaser && $has_teaser )
-		$teaser = '';
-
-	// $output .= $teaser;
-
-	if ( count( $content ) > 1 ) {
-		if ( $more ) {
-			$output .= '<span id="more-' . $post->ID . '"></span>' . $content[1];
-		} else {
-			if ( ! empty( $more_link_text ) )
-
-				/**
-				 * Filters the Read More link text.
-				 *
-				 * @since 2.8.0
-				 *
-				 * @param string $more_link_element Read More link element.
-				 * @param string $more_link_text    Read More text.
-				 */
-				$output .= apply_filters( 'the_content_more_link', ' <a href="' . get_permalink() . "#more-{$post->ID}\" class=\"more-link\">$more_link_text</a>", $more_link_text );
-			$output = force_balance_tags( $output );
+	foreach ($countrys as $country) {
+		if($country["cnt"] > 1) {
+			$output .= get_the_content_time_difference_city($country["country_id"]);
 		}
 	}
+	return $output;
+}
 
-	if ( $preview ) // Preview fix for JavaScript bug with foreign languages.
-		$output =	preg_replace_callback( '/\%u([0-9A-F]{4})/', '_convert_urlencoded_to_entities', $output );
+function get_the_content_time_difference_city($country_id) {
+	global $wpdb;
+
+	$sql = sprintf("
+		SELECT 
+		  t.country_id
+		, c.country_name
+		, c.english_name
+		, t.picture_file
+		, t.area
+		, t.color
+		, t.minus_flg
+		, t.time_difference
+		, t.utc
+		FROM  $wpdb->m_time t
+		INNER JOIN $wpdb->m_country c
+		ON c.country_id = t.country_id
+		WHERE t.country_id = %1s
+	",$country_id);
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
+
+	$output = sprintf('
+		<div>
+		<p id ="%1s"></p>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th colspan=5 style="background-color:#ba55d3">%2s時間</th>
+			</tr>
+			<tr>
+				<th width="260px">地図</th>
+				<th width="65px">色</th>
+				<th width="200px">主な都市</th>
+				<th width="80px">日本との<br/>時差</th>
+				<th width="100px">協定世界時<br/>(UTC)</th>
+			</tr>'
+	,$areas[0]["english_name"]
+	,$areas[0]["country_name"]
+	);
+
+	$row = 0;
+	foreach ($areas as $area) {
+		$output .=  '
+			<tr>';
+		if($row == 0) {
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%1s">
+					%2s
+				</td>'
+			,count($areas)
+			,$area["picture_file"]);
+		}
+
+		$start = explode(":", $area['time_difference']);
+		$time_difference = '';
+		if($area['minus_flg']=='1') {
+			$time_difference = '-';
+		}
+		$time_difference .= intval($start[0]) ."時間";
+		$hour = 9 - intval($start[0]); 
+		$utc = "UTC+" .$hour;
+		if($start[1] != "00"){
+			$time_difference .= intval($start[1]) ."分";
+			$min = 60 - intval($start[1]);
+			$hour--;
+			$utc = "UTC+" .$hour .":" .$min;
+		}
+	
+		$output .= sprintf('
+				<td>%1s</td>
+				<td>%2s</td>
+				<td>%3s</td>
+				<td>%4s</td>
+			</tr>'
+		,$area['color']
+		,$area['area']
+		,$time_difference
+		,$utc
+		);
+		$row++;
+	}
+	$output .= '
+		</table>';
+	$output .= '
+		</div>';
 
 	return $output;
 }
@@ -459,7 +681,29 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 	if ( $more && $strip_teaser && $has_teaser )
 		$teaser = '';
 
-	$output .= $teaser;
+	// $output .= $teaser;
+	// switch (str_replace(home_url(), "", get_permalink())) {
+	// 	case "/city/":
+	// 		$output .= get_the_content_city();
+	// 		break;
+	// 	case "/time_difference/":
+	// 		$output .= get_the_content_time_difference();
+	// 		break;
+	// 	default:
+	// 		$output .= $teaser;;
+	// 		break;
+	// }
+	switch ($post->ID) {
+		case 46:
+			$output .= get_the_content_city();
+			break;
+		case 87:
+			$output .= get_the_content_time_difference();
+			break;
+		default:
+			$output .= $teaser;;
+			break;
+	}
 
 	if ( count( $content ) > 1 ) {
 		if ( $more ) {

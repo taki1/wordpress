@@ -460,13 +460,16 @@ article.page .post-title {
   padding: 0 13px;
 }
 .post-content table {
-  border: 1px #ddd solid;
+  /*border: 1px #ddd solid;*/
+  border: 1px #008 solid;
+  margin:0 0 20px;
   max-width: 100%;
 }
 .post-content table th,
 .post-content table td {
   padding: 8px 10px;
-  border: #ddd solid 1px;
+  /*border: #ddd solid 1px;*/
+  border: 1px #008 solid;
 }
 .post-content table th {
   /*color: #fff;*/
