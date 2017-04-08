@@ -383,11 +383,15 @@ function get_the_content_time_difference() {
 		, t.area
 		, t.time_difference
 		, t.minus_flg
+		, m.common_val
 		FROM $wpdb->m_time t
 		INNER JOIN $wpdb->m_country c
 		ON c.country_id = t.country_id
 		INNER JOIN $wpdb->m_area a
 		ON a.area_id = c.area_id
+		LEFT  JOIN wp_m_common m
+        ON CONCAT(IF(t.minus_flg = '1', '-',''),t.time_difference) = m.common_name
+        ORDER BY c.country_id
 	";
 	$results2 = $wpdb->get_results($sql2);
 	$times = bzb_object2array($results2);
@@ -432,7 +436,6 @@ function get_the_content_time_difference() {
 				,$countrys[$row_c]["cnt"]
 				,$time['country_name']
 				,$countrys[$row_c]["cnt"]
-				// ,($countrys[$row_c]["cnt"]==1) ? "" : "※");
 				,$city);
 			$contryid = $time['country_id'];
 			$row_c++;
@@ -454,10 +457,12 @@ function get_the_content_time_difference() {
 		}
 
 		$output .=  sprintf('
-			    <td>%1s</td>
-			    <td>%2s</td>
+			    <td style="%s">%s</td>
+			    <td style="%s">%s</td>
 			</tr>'
+			,$time['common_val']
 			,$time_difference
+			,$time['common_val']
 			,$utc);
 	}
 	$output .= '
@@ -488,6 +493,7 @@ function get_the_content_time_difference_city($country_id) {
 		, t.picture_file
 		, t.area
 		, t.color
+		, t.color_val
 		, t.minus_flg
 		, t.time_difference
 		, t.utc
@@ -545,11 +551,12 @@ function get_the_content_time_difference_city($country_id) {
 		}
 	
 		$output .= sprintf('
-				<td>%1s</td>
-				<td>%2s</td>
-				<td>%3s</td>
-				<td>%4s</td>
+				<td style="%s">%s</td>
+				<td>%s</td>
+				<td>%s</td>
+				<td>%s</td>
 			</tr>'
+		,$area['color_val']
 		,$area['color']
 		,$area['area']
 		,$time_difference
@@ -583,15 +590,15 @@ function get_the_content_visa() {
 	$results = $wpdb->get_results($sql);
 	$areas = bzb_object2array($results);
 
-	$sql1 = "
-		SELECT 
-		  country_id
-		, COUNT(country_id) AS cnt
-		FROM $wpdb->m_visa
-		GROUP BY country_id
-	";
-	$results1 = $wpdb->get_results($sql1);
-	$countrys = bzb_object2array($results1);
+	// $sql1 = "
+	// 	SELECT 
+	// 	  country_id
+	// 	, COUNT(country_id) AS cnt
+	// 	FROM $wpdb->m_visa
+	// 	GROUP BY country_id
+	// ";
+	// $results1 = $wpdb->get_results($sql1);
+	// $countrys = bzb_object2array($results1);
 
 	$sql2 = "
 		SELECT 
@@ -777,15 +784,15 @@ function get_the_content_rate() {
 	$results = $wpdb->get_results($sql);
 	$areas = bzb_object2array($results);
 
-	$sql1 = "
-		SELECT 
-		  country_id
-		, COUNT(country_id) AS cnt
-		FROM $wpdb->m_rate
-		GROUP BY country_id
-	";
-	$results1 = $wpdb->get_results($sql1);
-	$countrys = bzb_object2array($results1);
+	// $sql1 = "
+	// 	SELECT 
+	// 	  country_id
+	// 	, COUNT(country_id) AS cnt
+	// 	FROM $wpdb->m_rate
+	// 	GROUP BY country_id
+	// ";
+	// $results1 = $wpdb->get_results($sql1);
+	// $countrys = bzb_object2array($results1);
 
 	$sql2 = "
 		SELECT 
@@ -805,16 +812,7 @@ function get_the_content_rate() {
 	$results2 = $wpdb->get_results($sql2);
 	$rates = bzb_object2array($results2);
 
-	// $reg = '/<span class=bld>(.*?) JPY<\/span>/';
-	// $get_html = file_get_contents('https://www.google.com/finance/converter?a=1&from=USD&to=JPY');
-	// if($get_html === FALSE){
-	// } else{
-	// 	if(preg_match($reg, $get_html, $match)){
-	// 		$ddd = sprintf('<span style="font-weight:bold">※参考 $1=¥%s</span>',$match[1]);
-	// 	}
-	// }
-
-	$output = sprintf('
+	$output = '
 		<h4>今回は、アジア各国の通貨の一覧をまとめてみました。</h4>
 		<table border="1" cellpadding="3">
 			<tr>
@@ -824,8 +822,7 @@ function get_the_content_rate() {
 				<th width="55px">通貨<br/>コード</th>
 				<th width="80px">1通貨=XX円</th>
 				<th width="140px">1ドル=XX通貨</th>
-			</tr>'
-		,$ddd);
+			</tr>';
 	
 	$row = 0;
 	$areaid = "";
@@ -884,6 +881,110 @@ function get_the_content_rate() {
 		,$yen
 		,$doll
 		);
+	}
+
+	$output .= '
+		</table>';
+
+	return $output;
+}
+
+/**
+ *
+ * アジア各国 公用語一覧
+ *
+ */
+function get_the_content_language() {
+	global $wpdb;
+
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
+
+	$sql1 = "
+		SELECT 
+		  country_id
+		, COUNT(country_id) AS cnt
+		FROM $wpdb->m_language
+		GROUP BY country_id
+	";
+	$results1 = $wpdb->get_results($sql1);
+	$countrys = bzb_object2array($results1);
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.english_name
+		, c.area_id
+		, a.area_name
+		, l.language_common_subid
+        , IFNULL(m.common_name, l.language_name) AS language_name
+        , m.common_val
+		FROM $wpdb->m_language l
+		INNER JOIN $wpdb->m_country c
+		ON c.country_id = l.country_id
+		INNER JOIN $wpdb->m_area a
+		ON a.area_id = c.area_id
+        LEFT  JOIN $wpdb->m_common m
+        ON m.common_id = 2
+        AND m.common_subid = l.language_common_subid
+		ORDER BY l.language_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$languages = bzb_object2array($results2);
+
+	$output = '
+		<h4>今回は、アジア各国の公用語の一覧をまとめてみました。</h4>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="130px">国名</th>
+				<th width="250px">公用語</th>
+			</tr>';
+	
+	$row = 0;
+	$row_c = 0;
+	$areaid = "";
+	for ($i=0; $i < count($languages); $i++) {
+		$output .= '
+			<tr>';
+
+		if($areaid != $languages[$i]['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$languages[$i]['area_name']);
+
+			$areaid = $languages[$i]['area_id'];
+			$row++;
+		}
+
+		$output .= sprintf('  
+				<td>%s</td>
+				<td>'
+		,$languages[$i]['country_name']);
+
+		$output .= sprintf('<span style="%s">%s</span>'
+			,$languages[$i]['common_val'] 
+			,$languages[$i]['language_name'] 
+		);
+		for ($j=1; $j < $countrys[$row_c]["cnt"]; $j++) {
+			$i +=1;
+			$output .= sprintf(', <span style="%s">%s</span>'
+				,$languages[$i]['common_val'] 
+				,$languages[$i]['language_name'] 
+			);
+		}
+		$row_c++;
+		$output .= '</td>
+				</tr>';
 	}
 
 	$output .= '
@@ -977,6 +1078,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 			break;
 		case 99:
 			$output .= get_the_content_rate();
+			break;
+		case 102:
+			$output .= get_the_content_language();
 			break;
 		default:
 			$output .= $teaser;;
