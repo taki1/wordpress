@@ -254,36 +254,14 @@ function the_content( $more_link_text = null, $strip_teaser = false) {
 	echo $content;	
 }
 
+
+/**
+ *
+ * アジア各国 国旗・首都・主な都市一覧
+ *
+ */
 function get_the_content_city() {
-	// global $page, $more, $preview, $pages, $multipage;
-	// global $page, $more, $preview, $pages, $multipage, $wpdb;
 	global $wpdb;
-
-	// $post = get_post();
-
-	// if ( null === $more_link_text ) {
-	// 	$more_link_text = sprintf(
-	// 		'<span aria-label="%1$s">%2$s</span>',
-	// 		sprintf(
-	// 			/* translators: %s: Name of current post */
-	// 			__( 'Continue reading %s' ),
-	// 			the_title_attribute( array( 'echo' => false ) )
-	// 		),
-	// 		__( '(more&hellip;)' )
-	// 	);
-	// }
-
-	// $output = '';
-	// $has_teaser = false;
-
-	// // If post password required and it doesn't match the cookie.
-	// if ( post_password_required( $post ) )
-	// 	return get_the_password_form( $post );
-
-	// if ( $page > count( $pages ) ) // if the requested page doesn't exist
-	// 	$page = count( $pages ); // give them the highest numbered page that DOES exist
-
-	// $content = $pages[$page - 1];
 
 	$sql = "
 		SELECT 
@@ -312,8 +290,8 @@ function get_the_content_city() {
 	$results2 = $wpdb->get_results($sql2);
 	$countrys = bzb_object2array($results2);
 
-	$output = '
-		今回は、アジア各国の首都・主な都市の一覧をまとめてみました。
+	$output = 
+		'<h4>今回は、アジア各国の首都・主な都市の一覧をまとめてみました。</h4>
 		<table border="1" cellpadding="3" width="100%">
 			<tr>
 				<th width="40px">No</th>
@@ -327,81 +305,49 @@ function get_the_content_city() {
 	$row = 0;
 	$areaid = "";
 	foreach ($countrys as $country) {
-		$output .= '
+		$output .= sprintf('
 			<tr>
-		    	<td style="text-align:right">' .$country['country_id'] .'</td>';
+		    	<td style="text-align:right">%1s</td>'
+		,$country['country_id']);
 
 		if($areaid != $country['area_id']){
-			$output .= '    <td style="text-align:center" rowspan="';
-			$output .= $areas[$row]['cnt'] .'">' .$country['area_name'] .'</td>';
+			// $output .= '    <td style="text-align:center" rowspan="';
+			// $output .= $areas[$row]['cnt'] .'">' .$country['area_name'] .'</td>';
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%1s">%2s</td>'
+			,$areas[$row]['cnt']
+			,$country['area_name']);
+
 			$areaid = $country['area_id'];
 			$row++;
 		}
 
-		$output .=  
-			'    <td>'
-			.str_replace("@@@", $country['flag']
-				,'        <img class="flag" alt="@@@" src="http://travel-a.up.seesaa.net/image/@@@ ">')
-			.'    </td>'
-			.'    <td>' .$country['country_name'] .'<br/>' .$country['english_name'] .'</td>'
-			.'    <td>' .$country['capital'] .'</td>'
-			.'    <td>'
-			.str_replace(",", "<br/>", $country['city'])
-			.'    </td>'
-			// .'    <td style="text-align:right">'
-			// .str_replace(",", "<br/>", $country['time_difference'])
-			// .'    </td>'
-			.'</tr>';
+		$output .= sprintf('  
+			<td>
+				<img class="flag" alt="%1s" src="http://travel-a.up.seesaa.net/image/%2s ">
+			</td>
+			<td>%3s<br/>%4s</td>
+			<td>%5s</td>
+			<td>%6s</td>
+		</tr>'
+		,$country['flag']
+		,$country['flag']
+		,$country['country_name'] 
+		,$country['english_name'] 
+		,$country['capital'] 
+		,str_replace(",", "<br/>", $country['city'])
+		);
 	}
 	$output .= '</table>';
-
-
-
-	// if ( preg_match( '/<!--more(.*?)?-->/', $content, $matches ) ) {
-	// 	$content = explode( $matches[0], $content, 2 );
-	// 	if ( ! empty( $matches[1] ) && ! empty( $more_link_text ) )
-	// 		$more_link_text = strip_tags( wp_kses_no_null( trim( $matches[1] ) ) );
-
-	// 	$has_teaser = true;
-	// } else {
-	// 	$content = array( $content );
-	// }
-
-	// if ( false !== strpos( $post->post_content, '<!--noteaser-->' ) && ( ! $multipage || $page == 1 ) )
-	// 	$strip_teaser = true;
-
-	// $teaser = $content[0];
-
-	// if ( $more && $strip_teaser && $has_teaser )
-	// 	$teaser = '';
-
-	// // $output .= $teaser;
-
-	// if ( count( $content ) > 1 ) {
-	// 	if ( $more ) {
-	// 		$output .= '<span id="more-' . $post->ID . '"></span>' . $content[1];
-	// 	} else {
-	// 		if ( ! empty( $more_link_text ) )
-
-	// 			/**
-	// 			 * Filters the Read More link text.
-	// 			 *
-	// 			 * @since 2.8.0
-	// 			 *
-	// 			 * @param string $more_link_element Read More link element.
-	// 			 * @param string $more_link_text    Read More text.
-	// 			 */
-	// 			$output .= apply_filters( 'the_content_more_link', ' <a href="' . get_permalink() . "#more-{$post->ID}\" class=\"more-link\">$more_link_text</a>", $more_link_text );
-	// 		$output = force_balance_tags( $output );
-	// 	}
-	// }
-
-	// if ( $preview ) // Preview fix for JavaScript bug with foreign languages.
-	// 	$output =	preg_replace_callback( '/\%u([0-9A-F]{4})/', '_convert_urlencoded_to_entities', $output );
 
 	return $output;
 }
 
+/**
+ *
+ * アジア各国 時差一覧
+ *
+ */
 function get_the_content_time_difference() {
 	global $wpdb;
 
@@ -447,7 +393,7 @@ function get_the_content_time_difference() {
 	$times = bzb_object2array($results2);
 
 	$output = 
-		'今回は、アジア各国の時差をまとめてみました。
+		'<h4>今回は、アジア各国の時差をまとめてみました。</h4>
 		<table border="1" cellpadding="3">
 			<tr>
 				<th width="10px" style="text-align:center">地<br/>域</th>
@@ -511,13 +457,7 @@ function get_the_content_time_difference() {
 			    <td>%1s</td>
 			    <td>%2s</td>
 			</tr>'
-			// ,$time['area']
 			,$time_difference
-			// ,$time['disp_time_difference']
-			
-			// ,$time['time_difference']->format('H:i')
-			// ,$time['utc']);
-			// // ,"UTC+" .date('H:i', $utc));			
 			,$utc);
 	}
 	$output .= '
@@ -531,6 +471,12 @@ function get_the_content_time_difference() {
 	return $output;
 }
 
+/**
+ *
+ * アジア各国 時差一覧 国内時差表
+ * @param int $country_id.
+ *
+ */
 function get_the_content_time_difference_city($country_id) {
 	global $wpdb;
 
@@ -554,12 +500,11 @@ function get_the_content_time_difference_city($country_id) {
 	$areas = bzb_object2array($results);
 
 	$output = sprintf('
-		<div>
-		<p id ="%1s"></p>
+		<h4 id="%s" style="padding-top:2em;margin-top:-2em;">
+			<span style="padding:0 5px;border-left:5px solid #ff8c00;"></span>
+			%s時間
+		</h4>
 		<table border="1" cellpadding="3">
-			<tr>
-				<th colspan=5 style="background-color:#ba55d3">%2s時間</th>
-			</tr>
 			<tr>
 				<th width="260px">地図</th>
 				<th width="65px">色</th>
@@ -614,8 +559,335 @@ function get_the_content_time_difference_city($country_id) {
 	}
 	$output .= '
 		</table>';
+
+	return $output;
+}
+
+/**
+ *
+ * アジア各国 ビザ一覧
+ *
+ */
+function get_the_content_visa() {
+	global $wpdb;
+
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		INNER JOIN $wpdb->m_visa v
+		ON c.country_id = v.country_id
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
+
+	$sql1 = "
+		SELECT 
+		  country_id
+		, COUNT(country_id) AS cnt
+		FROM $wpdb->m_visa
+		GROUP BY country_id
+	";
+	$results1 = $wpdb->get_results($sql1);
+	$countrys = bzb_object2array($results1);
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.english_name
+		, c.area_id
+		, a.area_name
+		, v.necessary
+		, v.arrival
+		, v.net
+		, v.day
+		, v.price
+		, v.e_site
+		, v.note
+		FROM $wpdb->m_visa v
+		INNER JOIN $wpdb->m_country c
+		ON c.country_id = v.country_id
+		INNER JOIN $wpdb->m_area a
+		ON a.area_id = c.area_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$visas = bzb_object2array($results2);
+
+	$output = 
+		'<h4>今回は、アジア各国のビザの一覧をまとめてみました。</h4>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="120px">国名</th>
+				<th width="55px">ビザ</th>
+				<th width="50px">現地<br/>取得</th>
+				<th width="70px">ネット<br/>取得</th>
+				<th width="70px">ビザ不要<br/>滞在日数</th>
+				<th width="70px">観光ビザ<br/>滞在日数</th>
+				<th width="110px">観光ビザ価格</th>
+			</tr>';
+	
+	$row = 0;
+	$noteCnt = 1;
+	$areaid = "";
+	foreach ($visas as $visa) {
+		$output .= '
+			<tr>';
+
+		if($areaid != $visa['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$visa['area_name']);
+
+			$areaid = $visa['area_id'];
+			$row++;
+		}
+		if ($visa['necessary'] == 1) { 
+			$output .= sprintf('  
+				<td>%s</td>
+				<td>%s</td>
+				<td style="text-align:center;">%s</td>
+				<td style="text-align:center;">%s</td>
+				<td style="text-align:right;">%s</td>
+				<td style="text-align:right;">%s</td>
+				<td style="text-align:right;">%s</td>
+			</tr>'
+			,$visa['country_name']
+			,"不要"
+			,$visa['arrival'] 
+			,$visa['net'] 
+			,$visa['day'] 
+			,"-"
+			,$visa['price']
+			);
+			}
+		else { 
+			$necessary = '<td style="font-weight:bold;color:red;">必要';
+			if ($visa['necessary'] != 2) {
+				$necessary = sprintf('<td><a href="%s">%s</a>'
+							,sprintf("#kome%s",$noteCnt)
+							,sprintf("※%sへ",$noteCnt));
+				$noteCnt++;
+			}
+			$arrival = "";
+			if ($visa['arrival']==1) {
+				$arrival = 'font-weight:bold;color:darkgreen">◯';
+			} else if ($visa['arrival']==2) {
+				$arrival = 'font-weight:bold;color:red">×';
+			} else {
+				$arrival = sprintf('"><a href="%s">%s</a>'
+				,sprintf("#kome%s",$noteCnt)
+				,sprintf("※%sへ",$noteCnt));
+				$noteCnt++;
+			}
+			
+			$net = "";
+			if ($visa['net']==1) {
+				if (strlen($visa['e_site']) > 0) {
+					$net = sprintf('"><a href="%s" target="_blank">サイトへ</a>'
+							,$visa['e_site']);
+				} else {
+					$net = 'font-weight:bold;color:darkgreen">◯';
+				}
+			} else if ($visa['net']==2) {
+				$net = 'font-weight:bold;color:red">×';
+			} else {
+				$net = sprintf('"><a href="%s">%s</a>'
+				,sprintf("#kome%s",$noteCnt)
+				,sprintf("※%sへ",$noteCnt));
+				$noteCnt++;
+			}
+
+			$output .= sprintf('  
+				<td>%s</td>
+				%s</td>
+				<td style="text-align:center;%s</td>
+				<td style="text-align:center;%s</td>'
+			,$visa['country_name']
+			,$necessary
+			,$arrival 
+			,$net
+			);
+			if ($visa['price']=="*") {
+				$output .= sprintf('  
+				<td colspan="3">%s</td>
+			</tr>'
+				,sprintf('<a href="%s">%s</a>'
+					,sprintf("#kome%s",$noteCnt)
+					,sprintf("※%sへ",$noteCnt))
+				);
+				$noteCnt++;
+			} else {
+				$output .= sprintf('  
+				<td style="text-align:right;">%s</td>
+				<td style="text-align:right;">%s</td>
+				<td style="text-align:right;">%s</td>
+			</tr>'
+				,($visa['necessary'] == 2) ? "-" : $visa['day']  
+				,$visa['day'] 
+				,$visa['price']
+				);				
+			}
+		}
+	}
+
 	$output .= '
-		</div>';
+		</table>';
+
+	$noteCnt = 1;
+	foreach ($visas as $visa) {
+		if(strlen($visa['note']) > 0) {
+			$output .= sprintf('
+			<h4 id="%s" style="padding-top:2em;margin-top:-2em;">
+				<span style="padding:0 5px;border-left:5px solid #ff8c00;"></span>
+				%s
+			</h4>
+			<p style="font-weight:bold;">%s</p>'
+			,sprintf("kome%s",$noteCnt)
+			,sprintf("※%s %sのビザについて",$noteCnt,$visa['country_name'])
+			,$visa['note']);
+			$noteCnt++;
+		}
+	}
+
+	return $output;
+}
+
+/**
+ *
+ * アジア各国 通貨一覧
+ *
+ */
+function get_the_content_rate() {
+	global $wpdb;
+
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		INNER JOIN $wpdb->m_rate v
+		ON c.country_id = v.country_id
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
+
+	$sql1 = "
+		SELECT 
+		  country_id
+		, COUNT(country_id) AS cnt
+		FROM $wpdb->m_rate
+		GROUP BY country_id
+	";
+	$results1 = $wpdb->get_results($sql1);
+	$countrys = bzb_object2array($results1);
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.english_name
+		, c.area_id
+		, a.area_name
+		, r.rate
+		, r.english_rate
+		FROM $wpdb->m_rate r
+		INNER JOIN $wpdb->m_country c
+		ON c.country_id = r.country_id
+		INNER JOIN $wpdb->m_area a
+		ON a.area_id = c.area_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$rates = bzb_object2array($results2);
+
+	// $reg = '/<span class=bld>(.*?) JPY<\/span>/';
+	// $get_html = file_get_contents('https://www.google.com/finance/converter?a=1&from=USD&to=JPY');
+	// if($get_html === FALSE){
+	// } else{
+	// 	if(preg_match($reg, $get_html, $match)){
+	// 		$ddd = sprintf('<span style="font-weight:bold">※参考 $1=¥%s</span>',$match[1]);
+	// 	}
+	// }
+
+	$output = sprintf('
+		<h4>今回は、アジア各国の通貨の一覧をまとめてみました。</h4>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="120px">国名</th>
+				<th width="125px">通貨名</th>
+				<th width="55px">通貨<br/>コード</th>
+				<th width="80px">1通貨=XX円</th>
+				<th width="140px">1ドル=XX通貨</th>
+			</tr>'
+		,$ddd);
+	
+	$row = 0;
+	$areaid = "";
+	foreach ($rates as $rate) {
+		$reg = '/<span class=bld>(.*?) JPY<\/span>/';
+		$yhtml = sprintf(
+			'https://www.google.com/finance/converter?a=1&from=%s&to=JPY'
+			,$rate['english_rate']);
+		$get_yhtml = file_get_contents($yhtml);
+
+		$yen="";
+		if($get_yhtml === FALSE){
+		} else {
+			if(preg_match($reg, $get_yhtml, $ymatch)){
+				$yen = sprintf('1%s=%s円',$rate['english_rate'] ,$ymatch[1]);
+			}
+		}
+
+		$dhtml = sprintf(
+			'https://www.google.com/finance/converter?a=1&from=USD&to=%s'
+			,$rate['english_rate']);
+		$get_dhtml = file_get_contents($dhtml);
+
+		$doll="";
+		if($get_dhtml === FALSE){
+		} else {
+			$reg = sprintf('/<span class=bld>(.*?) %s<\/span>/',$rate['english_rate']);
+			if(preg_match($reg, $get_dhtml, $match)){
+				$doll = sprintf('1ドル=%s%s',$match[1],$rate['english_rate']);
+			}
+		}
+
+		$output .= '
+			<tr>';
+
+		if($areaid != $rate['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$rate['area_name']);
+
+			$areaid = $rate['area_id'];
+			$row++;
+		}
+
+		$output .= sprintf('  
+				<td>%s</td>
+				<td>%s</td>
+				<td>%s</td>
+				<td>%s</td>
+				<td>%s</td>
+			</tr>'
+		,$rate['country_name']
+		,$rate['rate'] 
+		,$rate['english_rate'] 
+		,$yen
+		,$doll
+		);
+	}
+
+	$output .= '
+		</table>';
 
 	return $output;
 }
@@ -699,6 +971,12 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 			break;
 		case 87:
 			$output .= get_the_content_time_difference();
+			break;
+		case 92:
+			$output .= get_the_content_visa();
+			break;
+		case 99:
+			$output .= get_the_content_rate();
 			break;
 		default:
 			$output .= $teaser;;
