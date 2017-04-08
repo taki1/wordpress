@@ -470,6 +470,7 @@ article.page .post-title {
   padding: 8px 10px;
   /*border: #ddd solid 1px;*/
   border: 1px #008 solid;
+  font-weight: bold;
 }
 .post-content table th {
   /*color: #fff;*/

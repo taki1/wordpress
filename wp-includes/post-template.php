@@ -818,10 +818,10 @@ function get_the_content_rate() {
 			<tr>
 				<th width="10px" style="text-align:center">地域</th>
 				<th width="120px">国名</th>
-				<th width="125px">通貨名</th>
+				<th width="130px">通貨名</th>
 				<th width="55px">通貨<br/>コード</th>
-				<th width="80px">1通貨=XX円</th>
-				<th width="140px">1ドル=XX通貨</th>
+				<th width="70px">1通貨=XX円</th>
+				<th width="145px">1ドル=XX通貨</th>
 			</tr>';
 	
 	$row = 0;
@@ -1101,6 +1101,93 @@ function get_the_content_religion() {
 }
 
 /**
+ *
+ * アジア各国 世界遺産数一覧
+ *
+ */
+function get_the_content_heritages_num() {
+	global $wpdb;
+
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.area_id
+		, a.area_name
+        , COUNT(h.heritage_id) AS total
+		, SUM(IF(h.heritage_subid=1,1,0)) AS cultural
+		, SUM(IF(h.heritage_subid=2,1,0)) AS natural_
+		, SUM(IF(h.heritage_subid=3,1,0)) AS mixed
+		FROM $wpdb->m_country c
+		LEFT JOIN $wpdb->m_heritage h
+        ON c.country_id = h.country_id
+		INNER JOIN $wpdb->m_area a
+		ON a.area_id = c.area_id
+		GROUP BY c.country_id, c.country_name
+		ORDER BY c.country_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$heritages = bzb_object2array($results2);
+
+	$output = '
+		<h4>今回は、アジア各国の世界遺産数の一覧をまとめてみました。</h4>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="130px">国名</th>
+				<th width="110px">世界遺産数合計</th>
+				<th width="80px">文化遺産</th>
+				<th width="80px">自然遺産</th>
+				<th width="80px">複合遺産</th>
+			</tr>';
+	
+	$row = 0;
+	$areaid = "";
+	foreach ($heritages as $heritage) {
+		$output .= '
+			<tr>';
+
+		if($areaid != $heritage['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$heritage['area_name']);
+
+			$areaid = $heritage['area_id'];
+			$row++;
+		}
+
+		$output .= sprintf('  
+				<td>%s</td>
+				<td style="text-align:right;">%s</td>
+				<td style="text-align:right;">%s</td>
+				<td style="text-align:right;">%s</td>
+				<td style="text-align:right;">%s</td>
+			</tr>'
+		,$heritage['country_name'] 
+		,$heritage['total'] 
+		,$heritage['cultural'] 
+		,$heritage['natural_'] 
+		,$heritage['mixed']);
+	}
+
+	$output .= '
+		</table>';
+
+	return $output;
+}
+
+/**
  * Retrieve the post content.
  *
  * @since 0.71
@@ -1162,40 +1249,55 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 		$teaser = '';
 
 	// $output .= $teaser;
-	// switch (str_replace(home_url(), "", get_permalink())) {
-	// 	case "/city/":
-	// 		$output .= get_the_content_city();
-	// 		break;
-	// 	case "/time_difference/":
-	// 		$output .= get_the_content_time_difference();
-	// 		break;
-	// 	default:
-	// 		$output .= $teaser;;
-	// 		break;
-	// }
-	switch ($post->ID) {
-		case 46:
+	switch ($post->post_name) {
+		case "city":
 			$output .= get_the_content_city();
 			break;
-		case 87:
+		case "time_difference":
 			$output .= get_the_content_time_difference();
 			break;
-		case 92:
+		case "visa":
 			$output .= get_the_content_visa();
 			break;
-		case 99:
+		case "rate":
 			$output .= get_the_content_rate();
 			break;
-		case 102:
+		case "language":
 			$output .= get_the_content_language();
 			break;
-		case 105:
+		case "religion":
 			$output .= get_the_content_religion();
+			break;
+		case "heritages_num":
+			$output .= get_the_content_heritages_num();
 			break;
 		default:
 			$output .= $teaser;;
 			break;
 	}
+	// switch ($post->ID) {
+	// 	case 46:
+	// 		$output .= get_the_content_city();
+	// 		break;
+	// 	case 87:
+	// 		$output .= get_the_content_time_difference();
+	// 		break;
+	// 	case 92:
+	// 		$output .= get_the_content_visa();
+	// 		break;
+	// 	case 99:
+	// 		$output .= get_the_content_rate();
+	// 		break;
+	// 	case 102:
+	// 		$output .= get_the_content_language();
+	// 		break;
+	// 	case 105:
+	// 		$output .= get_the_content_religion();
+	// 		break;
+	// 	default:
+	// 		$output .= $teaser;;
+	// 		break;
+	// }
 
 	if ( count( $content ) > 1 ) {
 		if ( $more ) {
