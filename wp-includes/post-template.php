@@ -994,6 +994,113 @@ function get_the_content_language() {
 }
 
 /**
+ *
+ * アジア各国 主な宗教一覧
+ *
+ */
+function get_the_content_religion() {
+	global $wpdb;
+
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
+
+	$sql1 = "
+		SELECT 
+		  c.country_id
+		, COUNT(c.country_id) AS cnt
+		FROM $wpdb->m_country c
+		LEFT JOIN $wpdb->m_religion r
+		ON c.country_id = r.country_id
+        GROUP BY c.country_id
+	";
+	$results1 = $wpdb->get_results($sql1);
+	$countrys = bzb_object2array($results1);
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.area_id
+		, a.area_name
+		, r.religion_common_subid
+        , m.common_name AS religion_name
+        , m.common_val
+		FROM $wpdb->m_country c
+		LEFT JOIN $wpdb->m_religion r
+		ON c.country_id = r.country_id
+		INNER JOIN $wpdb->m_area a
+		ON a.area_id = c.area_id
+        LEFT JOIN $wpdb->m_common m
+        ON m.common_id = 3
+        AND m.common_subid = r.religion_common_subid
+		ORDER BY c.country_id, r.religion_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$religions = bzb_object2array($results2);
+
+	$output = '
+		<h4>今回は、アジア各国の主な宗教の一覧をまとめてみました。</h4>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="130px">国名</th>
+				<th width="300px">主な宗教</th>
+			</tr>';
+	
+	$row = 0;
+	$row_c = 0;
+	$areaid = "";
+	for ($i=0; $i < count($religions); $i++) {
+		$output .= '
+			<tr>';
+
+		if($areaid != $religions[$i]['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$religions[$i]['area_name']);
+
+			$areaid = $religions[$i]['area_id'];
+			$row++;
+		}
+
+		$output .= sprintf('  
+				<td>%s</td>
+				<td>'
+		,$religions[$i]['country_name']);
+
+		if (strlen($religions[$i]['religion_name'] ) > 0) {
+			$output .= sprintf('<span style="%s">%s</span>'
+				,$religions[$i]['common_val'] 
+				,$religions[$i]['religion_name'] 
+			);
+		}
+		for ($j=1; $j < $countrys[$row_c]["cnt"]; $j++) {
+			$i +=1;
+			$output .= sprintf(', <span style="%s">%s</span>'
+				,$religions[$i]['common_val'] 
+				,$religions[$i]['religion_name'] 
+			);
+		}
+		$row_c++;
+		$output .= '</td>
+			</tr>';
+	}
+
+	$output .= '
+		</table>';
+
+	return $output;
+}
+
+/**
  * Retrieve the post content.
  *
  * @since 0.71
@@ -1081,6 +1188,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 			break;
 		case 102:
 			$output .= get_the_content_language();
+			break;
+		case 105:
+			$output .= get_the_content_religion();
 			break;
 		default:
 			$output .= $teaser;;
