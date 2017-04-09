@@ -263,15 +263,7 @@ function the_content( $more_link_text = null, $strip_teaser = false) {
 function get_the_content_city() {
 	global $wpdb;
 
-	$sql = "
-		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country 
-		GROUP BY area_id
-	";
-	$results = $wpdb->get_results($sql);
-	$areas = bzb_object2array($results);
+	$areas = get_area_cnt();
 
 	$sql2 = "
 		SELECT 
@@ -351,17 +343,7 @@ function get_the_content_city() {
 function get_the_content_time_difference() {
 	global $wpdb;
 
-	$sql = "
-		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
-		INNER JOIN $wpdb->m_time t
-		ON c.country_id = t.country_id
-		GROUP BY area_id
-	";
-	$results = $wpdb->get_results($sql);
-	$areas = bzb_object2array($results);
+	$areas = get_area_cnt();
 
 	$sql1 = "
 		SELECT 
@@ -578,27 +560,7 @@ function get_the_content_time_difference_city($country_id) {
 function get_the_content_visa() {
 	global $wpdb;
 
-	$sql = "
-		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
-		INNER JOIN $wpdb->m_visa v
-		ON c.country_id = v.country_id
-		GROUP BY area_id
-	";
-	$results = $wpdb->get_results($sql);
-	$areas = bzb_object2array($results);
-
-	// $sql1 = "
-	// 	SELECT 
-	// 	  country_id
-	// 	, COUNT(country_id) AS cnt
-	// 	FROM $wpdb->m_visa
-	// 	GROUP BY country_id
-	// ";
-	// $results1 = $wpdb->get_results($sql1);
-	// $countrys = bzb_object2array($results1);
+	$areas = get_area_cnt();
 
 	$sql2 = "
 		SELECT 
@@ -772,27 +734,7 @@ function get_the_content_visa() {
 function get_the_content_rate() {
 	global $wpdb;
 
-	$sql = "
-		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
-		INNER JOIN $wpdb->m_rate v
-		ON c.country_id = v.country_id
-		GROUP BY area_id
-	";
-	$results = $wpdb->get_results($sql);
-	$areas = bzb_object2array($results);
-
-	// $sql1 = "
-	// 	SELECT 
-	// 	  country_id
-	// 	, COUNT(country_id) AS cnt
-	// 	FROM $wpdb->m_rate
-	// 	GROUP BY country_id
-	// ";
-	// $results1 = $wpdb->get_results($sql1);
-	// $countrys = bzb_object2array($results1);
+	$areas = get_area_cnt();
 
 	$sql2 = "
 		SELECT 
@@ -897,15 +839,7 @@ function get_the_content_rate() {
 function get_the_content_language() {
 	global $wpdb;
 
-	$sql = "
-		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
-		GROUP BY area_id
-	";
-	$results = $wpdb->get_results($sql);
-	$areas = bzb_object2array($results);
+	$areas = get_area_cnt();
 
 	$sql1 = "
 		SELECT 
@@ -1001,15 +935,7 @@ function get_the_content_language() {
 function get_the_content_religion() {
 	global $wpdb;
 
-	$sql = "
-		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
-		GROUP BY area_id
-	";
-	$results = $wpdb->get_results($sql);
-	$areas = bzb_object2array($results);
+	$areas = get_area_cnt();
 
 	$sql1 = "
 		SELECT 
@@ -1108,15 +1034,7 @@ function get_the_content_religion() {
 function get_the_content_heritages_num() {
 	global $wpdb;
 
-	$sql = "
-		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
-		GROUP BY area_id
-	";
-	$results = $wpdb->get_results($sql);
-	$areas = bzb_object2array($results);
+	$areas = get_area_cnt();
 
 	$sql2 = "
 		SELECT 
@@ -1185,6 +1103,128 @@ function get_the_content_heritages_num() {
 		</table>';
 
 	return $output;
+}
+
+/**
+ *
+ * アジア各国 主な電圧・プラグ一覧
+ *
+ */
+function get_the_content_plug() {
+	global $wpdb;
+
+	$areas = get_area_cnt();
+
+	$sql1 = "
+		SELECT 
+		  c.country_id
+		, COUNT(c.country_id) AS cnt
+		FROM $wpdb->m_country c
+		 LEFT JOIN $wpdb->m_plug p
+		   ON c.country_id = p.country_id
+        GROUP BY c.country_id
+	";
+	$results1 = $wpdb->get_results($sql1);
+	$countrys = bzb_object2array($results1);
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.area_id
+		, a.area_name
+		, c.volt
+        , p.plug_subid
+        , m.common_name AS plug_name
+        , m.common_val
+		FROM  $wpdb->m_country c
+		 LEFT JOIN $wpdb->m_plug p
+		   ON c.country_id = p.country_id
+		INNER JOIN $wpdb->m_area a
+		   ON a.area_id = c.area_id
+         LEFT JOIN $wpdb->m_common m
+           ON m.common_id = 5
+          AND m.common_subid = p.plug_subid
+		ORDER BY c.country_id, p.plug_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$plugs = bzb_object2array($results2);
+
+	$output = '
+		<h4>今回は、アジア各国の主な電圧・プラグの一覧をまとめてみました。</h4>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="130px">国名</th>
+				<th width="100px">主な電圧</th>
+				<th width="150px">主なプラグ</th>
+			</tr>';
+	
+	$row = 0;
+	$row_c = 0;
+	$areaid = "";
+	for ($i=0; $i < count($plugs); $i++) {
+		$output .= '
+			<tr>';
+
+		if($areaid != $plugs[$i]['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$plugs[$i]['area_name']);
+
+			$areaid = $plugs[$i]['area_id'];
+			$row++;
+		}
+
+		$output .= sprintf('  
+				<td>%s</td>
+				<td>%s</td>
+				<td>'
+		,$plugs[$i]['country_name'] 
+		,$plugs[$i]['volt']);
+
+		if (strlen($plugs[$i]['plug_name'] ) > 0) {
+			$output .= sprintf('<span style="%s">%s</span>'
+				,$plugs[$i]['common_val'] 
+				,$plugs[$i]['plug_name'] 
+			);
+		}
+		for ($j=1; $j < $countrys[$row_c]["cnt"]; $j++) {
+			$i +=1;
+			$output .= sprintf(', <span style="%s">%s</span>'
+				,$plugs[$i]['common_val'] 
+				,$plugs[$i]['plug_name'] 
+			);
+		}
+		$row_c++;
+		$output .= '</td>
+			</tr>';
+	}
+
+	$output .= '
+		</table>';
+
+	return $output;
+}
+
+/**
+ *
+ * エリア別件数取得
+ *
+ */
+function get_area_cnt() {
+	global $wpdb;
+
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	return bzb_object2array($results);
 }
 
 /**
@@ -1270,6 +1310,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 			break;
 		case "heritages_num":
 			$output .= get_the_content_heritages_num();
+			break;
+		case "plug":
+			$output .= get_the_content_plug();
 			break;
 		default:
 			$output .= $teaser;;
