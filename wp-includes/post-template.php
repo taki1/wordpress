@@ -343,7 +343,17 @@ function get_the_content_city() {
 function get_the_content_time_difference() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		INNER JOIN $wpdb->m_time t
+		ON c.country_id = t.country_id
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+ 	$areas = bzb_object2array($results);
 
 	$sql1 = "
 		SELECT 
@@ -560,7 +570,17 @@ function get_the_content_time_difference_city($country_id) {
 function get_the_content_visa() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$sql = "
+		SELECT 
+		  area_id
+		, COUNT(area_id) AS cnt
+		FROM $wpdb->m_country c
+		INNER JOIN $wpdb->m_visa v
+		ON c.country_id = v.country_id
+		GROUP BY area_id
+	";
+	$results = $wpdb->get_results($sql);
+	$areas = bzb_object2array($results);
 
 	$sql2 = "
 		SELECT 
@@ -1210,6 +1230,128 @@ function get_the_content_plug() {
 
 /**
  *
+ * アジア各国 世界平和度指数一覧
+ *
+ */
+function get_the_content_gpi() {
+	global $wpdb;
+
+	$areas = get_area_cnt();
+
+	$sql = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.area_id
+		, a.area_name
+        , g2016.gpi2016
+        , m2016.common_val AS color2016
+        , g2015.gpi2015
+        , m2015.common_val AS color2015
+        , g2014.gpi2014
+        , m2014.common_val AS color2014
+ 		 FROM  $wpdb->m_country c
+		INNER JOIN $wpdb->m_area a
+		   ON a.area_id = c.area_id
+
+        LEFT JOIN(
+            SELECT country_id, gpi2016, MAX(common_subid) AS common_subid
+             FROM $wpdb->m_gpi_gti
+            INNER JOIN $wpdb->m_common
+               ON common_id = 6
+              AND common_subid < gpi2016
+            GROUP BY country_id, gpi2016
+        ) g2016
+          ON g2016.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m2016
+          ON m2016.common_id = 6
+         AND m2016.common_subid = g2016.common_subid
+
+        LEFT JOIN(
+            SELECT country_id, gpi2015, MAX(common_subid) AS common_subid
+             FROM $wpdb->m_gpi_gti
+            INNER JOIN $wpdb->m_common
+               ON common_id = 6
+              AND common_subid < gpi2015
+            GROUP BY country_id,gpi2015
+        ) g2015
+          ON g2015.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m2015
+          ON m2015.common_id = 6
+         AND m2015.common_subid = g2015.common_subid
+
+        LEFT JOIN(
+            SELECT country_id, gpi2014, MAX(common_subid) AS common_subid
+             FROM $wpdb->m_gpi_gti
+            INNER JOIN $wpdb->m_common
+               ON common_id = 6
+              AND common_subid < gpi2014
+            GROUP BY country_id,gpi2014
+        ) g2014
+          ON g2014.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m2014
+          ON m2014.common_id = 6
+         AND m2014.common_subid = g2014.common_subid
+		ORDER BY c.country_id
+	";
+	$results = $wpdb->get_results($sql);
+	$peaces = bzb_object2array($results);
+
+	$output = '
+		<h4>今回は、アジア各国の世界平和度指数の一覧をまとめてみました。</h4>
+		<p style="font-weight:bold;">
+			162カ国中のランキング<br/>
+			平和度の評価は、国内及び国際紛争、社会の治安や安全、軍事力などの23項目の指標から決められています。<br/>
+			<a href="http://static.visionofhumanity.org/#/page/indexes/global-peace-index" target="_blank">詳細はこちら</a>
+		</p>
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="130px">国名</th>
+				<th width="80px">2016年</th>
+				<th width="80px">2015年</th>
+				<th width="80px">2014年</th>
+			</tr>';
+	
+	$row = 0;
+	$areaid = "";
+	foreach ($peaces as $peace) {
+		$output .= '
+			<tr>';
+
+		if($areaid != $peace['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$peace['area_name']);
+
+			$areaid = $peace['area_id'];
+			$row++;
+		}
+
+		$output .= sprintf('  
+				<td>%s</td>
+				<td style="text-align:right;%s">%s</td>
+				<td style="text-align:right;%s">%s</td>
+				<td style="text-align:right;%s">%s</td>
+			</tr>'
+		,$peace['country_name'] 
+		,$peace['color2016'] 
+		,(strlen($peace['gpi2016']) > 0) ? $peace['gpi2016']."位" : 'ー'
+		,$peace['color2015'] 
+		,(strlen($peace['gpi2015']) > 0) ? $peace['gpi2015']."位" : 'ー'
+		,$peace['color2014'] 
+		,(strlen($peace['gpi2014']) > 0) ? $peace['gpi2014']."位" : 'ー');
+	}
+
+	$output .= '
+		</table>';
+
+	return $output;
+}
+
+/**
+ *
  * エリア別件数取得
  *
  */
@@ -1313,6 +1455,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 			break;
 		case "plug":
 			$output .= get_the_content_plug();
+			break;
+		case "gpi":
+			$output .= get_the_content_gpi();
 			break;
 		default:
 			$output .= $teaser;;
