@@ -1477,19 +1477,165 @@ function get_the_content_gti() {
 
 /**
  *
+ * アジア各国 外務省 危険情報一覧
+ *
+ */
+function get_the_content_safety() {
+	global $wpdb;
+
+	$areas = get_area_cnt(true);
+
+	$sql1 = "
+		SELECT 
+		  m.common_id
+        , m.common_name  AS safety_name
+        , m.common_val   AS safety_val
+        , m2.common_name AS safety_name2
+        , m2.common_val  AS safety_val2
+		FROM  $wpdb->m_common m
+		INNER JOIN $wpdb->m_common m2
+           ON m.common_id = 8
+		  AND m2.common_id = 8
+          AND (m.common_subid + 10) = m2.common_subid
+ 		ORDER BY m.common_subid";
+	$results1 = $wpdb->get_results($sql1);
+	$levels = bzb_object2array($results1);
+
+	$output = '
+		<h4>今回は、アジア各国の外務省発表の危険情報の一覧をまとめてみました。</h4>';
+
+	$output .= '
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="100px">レベル</th>
+				<th width="150px">説明</th>
+			</tr>';
+
+	foreach ($levels as $safety) {
+		$output .= sprintf(" 
+			<tr>
+				<td style='%1\$s'>%2\$s<br/>%3\$s</td>
+				<td style='%1\$s'>%4\$s</td>
+			</tr>"
+		,$safety['safety_val'] 
+		,$safety['safety_name'] 
+		,$safety['safety_val2'] 
+		,$safety['safety_name2'] 
+		);
+	}
+
+	$output .= '
+		</table>';
+
+	$sql2 = "
+		SELECT 
+		  c.country_id
+		, c.country_name
+		, c.area_id
+		, a.area_name
+        , s.max_level_id
+        , m.common_name AS safety_name
+        , m.common_val AS safety_val
+		, s.capital_level_id
+        , m2.common_name AS safety_name2
+        , m2.common_val AS safety_val2
+		, s.safety_url_id AS safety_url 
+		FROM  $wpdb->m_country c
+		INNER JOIN $wpdb->m_safety s
+		   ON c.country_id = s.country_id
+		INNER JOIN $wpdb->m_area a
+		   ON a.area_id = c.area_id
+         LEFT JOIN $wpdb->m_common m
+           ON m.common_id = 8
+          AND m.common_subid = s.max_level_id
+         LEFT JOIN $wpdb->m_common m2
+           ON m2.common_id = 8
+          AND m2.common_subid = s.capital_level_id
+		ORDER BY c.country_id
+	";
+	$results2 = $wpdb->get_results($sql2);
+	$safetys = bzb_object2array($results2);
+
+	$sql3 = "
+		SELECT 
+		  m.common_name AS url_format
+		FROM  $wpdb->m_common m
+        WHERE m.common_id = 8
+          AND m.common_subid = 101
+	";
+	$results3 = $wpdb->get_results($sql3);
+	$url_formats = bzb_object2array($results3);
+
+	$output .= '
+		<table border="1" cellpadding="3">
+			<tr>
+				<th width="10px" style="text-align:center">地域</th>
+				<th width="130px">国名</th>
+				<th width="150px">国内最高危険レベル</th>
+				<th width="150px">首都の危険レベル</th>
+				<th width="150px">外務省ページ</th>
+			</tr>';
+	
+	$row = 0;
+	$areaid = "";
+	foreach ($safetys as $safety) {
+		$output .= '
+			<tr>';
+
+		if($areaid != $safety['area_id']){
+			$output .= sprintf('
+				<td style="text-align:center" rowspan="%s">%s</td>'
+			,$areas[$row]['cnt']
+			,$safety['area_name']);
+
+			$areaid = $safety['area_id'];
+			$row++;
+		}
+
+		$url = "";
+		if (strlen($safety['safety_url']) > 0) {
+			$url = sprintf('<a href="%s" target="_blank">危険情報</a>'
+						, sprintf($url_formats[0]["url_format"],$safety['safety_url'])
+			);
+
+		}
+		$output .= sprintf('  
+				<td>%s</td>
+				<td style="%s">%s</td>
+				<td style="%s">%s</td>
+				<td>%s</td>
+			</tr>'
+		,$safety['country_name'] 
+		,$safety['safety_val'] 
+		,$safety['safety_name'] 
+		,$safety['safety_val2'] 
+		,$safety['safety_name2'] 
+		,$url 
+		);
+	}
+
+	$output .= '
+		</table>';
+
+	return $output;
+}
+
+/**
+ *
  * エリア別件数取得
  *
  */
-function get_area_cnt() {
+function get_area_cnt($flg = false) {
 	global $wpdb;
 
-	$sql = "
+	$sql = sprintf("
 		SELECT 
 		  area_id
 		, COUNT(area_id) AS cnt
 		FROM $wpdb->m_country c
-		GROUP BY area_id
-	";
+		%s
+		GROUP BY area_id"
+	,$flg ? "WHERE country_id <> 1" : "");
 	$results = $wpdb->get_results($sql);
 	return bzb_object2array($results);
 }
@@ -1586,6 +1732,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 			break;
 		case "gti":
 			$output .= get_the_content_gti();
+			break;
+		case "safety":
+			$output .= get_the_content_safety();
 			break;
 		default:
 			$output .= $teaser;;
