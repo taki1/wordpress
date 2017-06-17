@@ -268,7 +268,9 @@ class wpdb {
 	var $tables = array( 'posts', 'comments', 'links', 'options', 'postmeta',
 		'terms', 'term_taxonomy', 'term_relationships', 'termmeta', 'commentmeta'
 		, 'm_area', 'm_heritage', 'm_country', 'm_time', 'm_visa', 'm_rate'
-		, 'm_common', 'm_language', 'm_religion', 'm_plug', 'm_gpi_gti', 'm_safety');
+		, 'm_common', 'm_language', 'm_religion', 'm_plug', 'm_gpi_gti', 'm_safety'
+		, 'm_site', 'm_book', 'm_airport', 'm_flights', 'm_ticket', 'm_city'
+		, 'm_hotel', 'm_tour', 'm_option', 'm_weather');
 
 	/**
 	 * List of deprecated WordPress tables

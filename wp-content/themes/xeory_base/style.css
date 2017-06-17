@@ -3433,3 +3433,37 @@ body.color04 .single-lp .lp-form button:hover {
   width:60px;
   /*height:26px;*/
 }
+
+.wd100 {
+  width:100%;
+}
+
+.tablecss01 {
+  border:"1";
+  width:100%;
+  word-break:break-word;
+}
+
+.nowrap {
+  white-space:nowrap;
+}
+
+.tbhd {
+  background-color:lawngreen !important;
+  text-align:center;
+}
+
+.tbth {
+  width:180px;  
+} 
+
+.tbhd4 {
+  background-color:lawngreen;
+  text-align:center;
+  margin-bottom:0px !important;
+  padding:10px;
+  border:1px solid;
+  border-bottom:none;
+  font-weight:bold;
+  color:#000;
+}
