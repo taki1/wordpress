@@ -34,9 +34,9 @@
     <article id="post-<?php echo the_ID(); ?>" <?php post_class(); ?> itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
       
       <header class="post-header">
-        <ul class="post-meta list-inline">
+        <!--<ul class="post-meta list-inline">
           <li class="date updated" itemprop="datePublished" datetime="<?php the_time('c');?>"><i class="fa fa-clock-o"></i> <?php the_time('Y.m.d');?></li>
-        </ul>
+        </ul>-->
         <h2 class="post-title" itemprop="headline"><a href="<?php the_permalink(); ?>"><?php esc_html(the_title()); ?></a></h2>
       </header>
 

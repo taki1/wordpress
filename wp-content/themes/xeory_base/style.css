@@ -471,6 +471,8 @@ article.page .post-title {
   /*border: #ddd solid 1px;*/
   border: 1px #008 solid;
   font-weight: bold;
+  /*width:100%;
+  display:block;*/
 }
 .post-content table th {
   /*color: #fff;*/
@@ -3440,8 +3442,18 @@ body.color04 .single-lp .lp-form button:hover {
 
 .tablecss01 {
   border:"1";
+  box-sizing:border-box;
+  width:device-width;
+  /*width:100%;*/
+  /*word-break:break-word;*/
+}
+.tablecss01 th {
+  width:180px;  
+  white-space:nowrap;
+}
+
+.tablecss01 td {
   width:100%;
-  word-break:break-word;
 }
 
 .nowrap {
@@ -3467,3 +3479,12 @@ body.color04 .single-lp .lp-form button:hover {
   font-weight:bold;
   color:#000;
 }
+
+/*.tablecss01 tr,
+.tablecss01 th,
+.tablecss01 td {
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+}*/
+

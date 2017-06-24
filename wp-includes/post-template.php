@@ -394,9 +394,9 @@ function get_the_content_time_difference() {
 			<tr>
 				<th width="10px" style="text-align:center">地<br/>域</th>
 				<th width="120px">国名</th>
-				<th width="150px">国内時差地図へ</th>
 				<th width="110px">日本との時差</th>
 				<th width="130px">協定世界時(UTC)</th>
+				<th width="150px">国内時差地図へ</th>
 			</tr>';
 
 	$row = 0;
@@ -416,21 +416,10 @@ function get_the_content_time_difference() {
 		}
 
 		if($contryid != $time['country_id']) {
-			$city = '';
-			if($countrys[$row_c]["cnt"] > 1){
-				$city = sprintf('<a href="%1s">%2s</a>'
-				,"#" .$time['english_name']
-				,$time['country_name'] ."時間へ");
-			}
 			$output .=  sprintf('
-			    <td rowspan="%1s">%2s</td>
-			    <td rowspan="%3s">%4s</td>'
+			    <td rowspan="%1s">%2s</td>'
 				,$countrys[$row_c]["cnt"]
-				,$time['country_name']
-				,$countrys[$row_c]["cnt"]
-				,$city);
-			$contryid = $time['country_id'];
-			$row_c++;
+				,$time['country_name']);
 		}
 
 		$start = explode(":", $time['time_difference']);
@@ -450,12 +439,29 @@ function get_the_content_time_difference() {
 
 		$output .=  sprintf('
 			    <td style="%s">%s</td>
-			    <td style="%s">%s</td>
-			</tr>'
+			    <td style="%s">%s</td>'
 			,$time['common_val']
 			,$time_difference
 			,$time['common_val']
 			,$utc);
+
+		if($contryid != $time['country_id']) {
+			$city = '';
+			if($countrys[$row_c]["cnt"] > 1){
+				$city = sprintf('<a href="%1s">%2s</a>'
+				,"#" .$time['english_name']
+				,$time['country_name'] ."時間へ");
+			}
+			$output .=  sprintf('
+			    <td rowspan="%1s">%2s</td>'
+				,$countrys[$row_c]["cnt"]
+				,$city);
+			$contryid = $time['country_id'];
+			$row_c++;
+		}
+		$output .= '
+			</tr>';
+
 	}
 	$output .= '
 		</table>';
@@ -496,12 +502,14 @@ function get_the_content_time_difference_city($country_id) {
 	",$country_id);
 	$results = $wpdb->get_results($sql);
 	$areas = bzb_object2array($results);
+	if (count($areas)<= 1) return "";
 
 	$output = sprintf('
-		<h4 id="%s" style="padding-top:2em;margin-top:-2em;">
-			<span style="padding:0 5px;border-left:5px solid #ff8c00;"></span>
+		<h6 style="padding-top:2em;margin-top:-2em;">
+			<span id="%s" style="padding:0 5px;border-left:5px solid #ff8c00;">
 			%s時間
-		</h4>
+			</span>
+		</h6>
 		<table border="1" cellpadding="3">
 			<tr>
 				<th width="260px">地図</th>
@@ -731,10 +739,11 @@ function get_the_content_visa() {
 	foreach ($visas as $visa) {
 		if(strlen($visa['note']) > 0) {
 			$output .= sprintf('
-			<h4 id="%s" style="padding-top:2em;margin-top:-2em;">
-				<span style="padding:0 5px;border-left:5px solid #ff8c00;"></span>
+			<h6 id="%s" style="padding-top:2em;margin-top:-2em;">
+				<span style="padding:0 5px;border-left:5px solid #ff8c00;">
 				%s
-			</h4>
+				</span>
+			</h6>
 			<p style="font-weight:bold;">%s</p>'
 			,sprintf("kome%s",$noteCnt)
 			,sprintf("※%s %sのビザについて",$noteCnt,$visa['country_name'])
@@ -1660,10 +1669,6 @@ function get_the_content_country($country_id) {
 		, c.volt
 		, mu.common_val AS flag_url
 
-		, t.picture_file
-		, t.area
-		, t.color
-		, t.color_val
 		, t.minus_flg
 		, t.time_difference
 		, t.utc
@@ -1706,19 +1711,26 @@ function get_the_content_country($country_id) {
 		);
 	}
 
-	$start = explode(":", $country['time_difference']);
 	$time_difference = '';
-	if($country['minus_flg']=='1') {
-		$time_difference = '-';
-	}
-	$time_difference .= intval($start[0]) ."時間";
-	$hour = 9 - intval($start[0]); 
-	$utc = "UTC+" .$hour;
-	if($start[1] != "00"){
-		$time_difference .= intval($start[1]) ."分";
-		$min = 60 - intval($start[1]);
-		$hour--;
-		$utc = "UTC+" .$hour .":" .$min;
+	$utc = "";
+	if (count($countrys) == 1) {
+		$start = explode(":", $country['time_difference']);
+		if($country['minus_flg']=='1') {
+			$time_difference = '-';
+		}
+		$time_difference .= intval($start[0]) ."時間";
+		$hour = 9 - intval($start[0]); 
+		$utc = "UTC+" .$hour;
+		if($start[1] != "00"){
+			$time_difference .= intval($start[1]) ."分";
+			$min = 60 - intval($start[1]);
+			$hour--;
+			$utc = "UTC+" .$hour .":" .$min;
+		}
+	} else {
+		$time_link = sprintf('<a href="#%s">%s時間へ</a>',$country['english_name'] ,$country['country_name'] );
+		$time_difference = $time_link;
+		$utc = $time_link;
 	}
 	$city = get_the_content_country_city($country_id);
 	$language = get_the_content_country_language($country_id);
@@ -1727,7 +1739,7 @@ function get_the_content_country($country_id) {
 
 	$output .= sprintf('
 	<h4 class="tbhd4">基本情報</h4>
-	<table cellpadding="3" class="tablecss01">
+	<table cellpadding="3" class="tablecss01" style"display:block;">
 		<!--<tr>
 			<th colspan="2" class="tbhd">基本情報</th>
 		</tr>-->
@@ -1756,7 +1768,8 @@ function get_the_content_country($country_id) {
 	,$plug 
 	,$country['volt']
 	);
-
+	
+	$output .= get_the_content_time_difference_city($country_id);
 	$output .= get_the_content_country_safety($country_id);
 	$output .= get_the_content_country_rate($country['rate'] , $country['english_rate'] );
 	$output .= get_the_content_country_visa($country_id);
@@ -2093,7 +2106,8 @@ function get_the_content_country_rate($rate, $english_rate) {
 
 	$output .= sprintf('
 	<h4 class="tbhd4">通貨</h4>  
-	<table border="1" cellpadding="3" width="100%%">
+	<table cellpadding="3" class="tablecss01">
+	<!--<table border="1" cellpadding="3" width="100%%">-->
 		<!--<tr>
 			<th colspan="2" class="tbhd">通貨</th>
 		</tr>-->
@@ -2142,7 +2156,8 @@ function get_the_content_country_visa($country_id) {
 
 	$output .= '
 	<h4 class="tbhd4">ビザ</h4>  
-	<table border="1" cellpadding="3" width="100%%">
+	<table cellpadding="3" class="tablecss01">
+	<!--<table border="1" cellpadding="3" width="100%%">-->
 		<!--<tr>
 			<th colspan="2" class="tbhd">ビザ</th>
 		</tr>-->';
@@ -2157,7 +2172,7 @@ function get_the_content_country_visa($country_id) {
 	} else { 
 		$necessary = '<td style="font-weight:bold;color:red;">必要';
 		if ($country['necessary'] != 2) {
-			$necessary = '<td><a href="#kome1">※1へ</a>';
+			$necessary = '<td><a href="#kome1">ビザについてへ</a>';
 		}
 		$arrival = "";
 		if ($country['arrival']==1) {
@@ -2165,10 +2180,7 @@ function get_the_content_country_visa($country_id) {
 		} else if ($country['arrival']==2) {
 			$arrival = '<td style="font-weight:bold;color:red">×</td>';
 		} else {
-			$arrival = sprintf('"><a href="%s">%s</a>'
-			,sprintf("#kome%s",$noteCnt)
-			,sprintf("※%sへ",$noteCnt));
-			$noteCnt++;
+			$arrival = '<td><a href="#kome1">ビザについてへ</a>';
 		}
 		
 		$net = "";
@@ -2182,7 +2194,7 @@ function get_the_content_country_visa($country_id) {
 		} else if ($country['net']==2) {
 			$net = '<td style="font-weight:bold;color:red">×';
 		} else {
-			$net = '<td><a href="#kome1">※1へ</a>';
+			$net = '<td><a href="#kome1">ビザについてへ</a>';
 		}
 
 		$output .= sprintf('  
@@ -2196,7 +2208,7 @@ function get_the_content_country_visa($country_id) {
 		);
 		if ($country['price']=="*") {
 			$output .= '  
-		<tr>  <th>観光ビザ滞在日数・価格</th>  <td><a href="#kome1">※1へ</a</td></tr>
+		<tr>  <th>観光ビザ滞在日数・価格</th>  <td><a href="#kome1">ビザについてへ</a></td></tr>
 			';
 		} else {
 			$output .= sprintf('  
@@ -2211,6 +2223,17 @@ function get_the_content_country_visa($country_id) {
 
 	$output .= '
 	</table>';
+
+	if(strlen($country['note']) > 0) {
+		$output .= sprintf('
+	<h6 style="padding-top:2em;margin-top:-2em;">
+		<span id="kome1" style="padding:0 5px;border-left:5px solid #ff8c00;">
+			ビザについて
+		</span>
+	</h6>
+	<p style="font-weight:bold;">%s</p>'
+		,$country['note']);
+	}
 
 	return $output;
 }
@@ -2243,7 +2266,8 @@ function get_the_content_country_heritage($country_id) {
 
 	$output = sprintf('
 	<h4 class="tbhd4">世界遺産</h4>  
-	<table border="1" cellpadding="3" width="100%%">
+	<table cellpadding="3" class="tablecss01">
+	<!--<table border="1" cellpadding="3" width="100%%">-->
 		<!--<tr>
 			<th colspan="2" class="tbhd">世界遺産</th>
 		</tr>-->
@@ -2328,10 +2352,12 @@ function get_the_content_country_introduction($country_id) {
 
 	$results = $wpdb->get_results($sql);
 	$sites = bzb_object2array($results);
+	if (count($sites)== 0) return "";
 
 	$output = sprintf('
 	<h4 class="tbhd4">旅行ガイド・まとめサイト %s</h4>  
-	<table border="1" cellpadding="3" width="100%%">
+	<table cellpadding="3" class="tablecss01">
+	<!--<table border="1" cellpadding="3" width="100%%">-->
 		<!--<tr>
 			<th colspan="2" class="tbhd">旅行ガイド・まとめサイト</th>
 		</tr>-->
@@ -2397,6 +2423,7 @@ function get_the_content_country_book($country_id) {
 
 	$results = $wpdb->get_results($sql);
 	$books = bzb_object2array($results);
+	if (count($books)== 0) return "";
 
 	$sql2 = sprintf("
 		SELECT 
@@ -2419,7 +2446,8 @@ function get_the_content_country_book($country_id) {
 
 	$output = sprintf('
 	<h4 class="tbhd4">ガイドブック</h4>  
-	<table border="1" cellpadding="3" width="100%%">
+	<table cellpadding="3" class="tablecss01">
+	<!--<table border="1" cellpadding="3" width="100%%">-->
 		<!--<tr>
 			<th colspan="2" class="tbhd">ガイドブック</th>
 		</tr>-->
@@ -2521,22 +2549,34 @@ function get_the_content_country_Flights($country_id) {
 	$url_formats = bzb_object2array($results3);
 
 	$output = sprintf('
-	<h4 class="tbhd4">日本からの直行便情報</h4>  
-	<table border="1" cellpadding="3" width="100%%">
-		<!--<tr>
-			<th colspan="6" class="tbhd">日本からの直行便情報</th>
-		</tr>-->
+	<h4 class="tbhd4">日本からの直行便情報</h4>');
+	if (count($cnts)== 0) {
+		$output .= sprintf('
+	<table cellpadding="3" class="tablecss01">
+		<tr><th></th><td>なし</td></tr>
+	</table>'
+		);
+		return $output;
+	}
+
+	$output .= sprintf('
+	<table cellpadding="3" class="tablecss01">
+	<!--<table border="1" cellpadding="3" width="100%%">-->
 		<tr>
 			<th>出発地</th>
 			<th>到着地</th>
-			<th width="88px" style="margin:0px !important; padding:0px !important;"><img border="0" alt="flyteam" src="http://flyteam.jp/img/logo_ft_88x31.jpg"  style="margin:0px !important; padding:0px !important;text-align:center !important;vertical-align:middle !important;"></th>
+			<th style="margin:0px !important; padding:0px !important;"><img border="0" alt="flyteam" src="http://flyteam.jp/img/logo_ft_88x31.jpg"  style="margin:0px !important; padding:0px !important;text-align:center !important;vertical-align:middle !important;"></th>
 		</tr>'
 	);
 
 	$r = 0;
 	for ($i = 0; $i < count($cnts); $i++) {
 		$output .= sprintf('
-		<tr>  <td rowspan="%s">%s(%s)</td><td>%s(%s)</td><td><a href="%s" target="_blank" rel="nofollow">%s</a></td></tr>'
+		<tr>  
+			<td class="nowrap" style="width:110px" rowspan="%s">%s(%s)</td>
+			<td class="nowrap" style="width:310px">%s(%s)</td>
+			<td class="nowrap" style="width:200px"><a href="%s" target="_blank" rel="nofollow">%s</a></td>
+		</tr>'
 		,$cnts[$i]["count"]
 		,$flights[$r]["departure_name"]
 		,$flights[$r]["departure_code"]
@@ -2549,7 +2589,10 @@ function get_the_content_country_Flights($country_id) {
 		$r++;
 		for ($j = 1; $j < $cnts[$i]["count"]; $j++) {
 			$output .= sprintf('
-		<tr>  <td>%s(%s)</td><td><a href="%s" target="_blank" rel="nofollow">%s</a></td></tr>'
+		<tr>
+			<td class="nowrap">%s(%s)</td>
+			<td class="nowrap"><a href="%s" target="_blank" rel="nofollow">%s</a></td>
+		</tr>'
 			,$flights[$r]["arrival_name"]
 			,$flights[$r]["arrival_code"]
 			,sprintf($url_formats[0]["url_format"],$flights[$r]["schedule_url"])
@@ -2612,6 +2655,7 @@ function get_the_content_country_ticket($country_id) {
 
 	$results2 = $wpdb->get_results($sql2);
 	$cnts = bzb_object2array($results2);
+	if (count($cnts)== 0) return "";
 
 	$output = sprintf('
 	<h4 class="tbhd4">航空券を探す</h4>  
@@ -2695,6 +2739,7 @@ function get_the_content_country_hotel($country_id) {
 
 	$results2 = $wpdb->get_results($sql2);
 	$cnts = bzb_object2array($results2);
+	if (count($cnts)== 0) return "";
 
 	$output = sprintf('
 	<h4 class="tbhd4">ホテルを探す</h4>  
@@ -2753,6 +2798,7 @@ function get_the_content_country_tour($country_id) {
 
 	$results = $wpdb->get_results($sql);
 	$tours = bzb_object2array($results);
+	if (count($tours)== 0) return "";
 
 	$sql2 = sprintf("
 		SELECT 
@@ -2829,6 +2875,7 @@ function get_the_content_country_option($country_id) {
 
 	$results = $wpdb->get_results($sql);
 	$options = bzb_object2array($results);
+	if (count($options)== 0) return "";
 
 	$sql2 = sprintf("
 		SELECT 
