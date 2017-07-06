@@ -19,6 +19,7 @@ function get_the_content_city() {
 		, c.flag
 		, c.capital
 		, c.city
+		, c.post_name
 		FROM $wpdb->m_country c
 		INNER JOIN $wpdb->m_area a
 		ON a.area_id = c.area_id
@@ -27,8 +28,7 @@ function get_the_content_city() {
 	$countrys = bzb_object2array($results2);
 
 	$output = 
-		'<h4>今回は、アジア各国の首都・主な都市の一覧をまとめてみました。</h4>
-		<!--more-->
+		'<h4>今回は、アジア各国の首都・主な都市の一覧をまとめてみました。</h4><!--more-->
 		<table border="1" cellpadding="3" width="100%">
 			<tr>
 				<th width="40px">No</th>
@@ -59,18 +59,36 @@ function get_the_content_city() {
 			$row++;
 		}
 
-		$output .= sprintf('  
-			<td>
-				<img class="flag" alt="%1s" src="http://travel-a.up.seesaa.net/image/%2s ">
-			</td>
-			<td>%3s<br/>%4s</td>
-			<td>%5s</td>
-			<td>%6s</td>
-		</tr>'
+		$img = sprintf('<img class="flag" alt="%s" src="http://travel-a.up.seesaa.net/image/%s ">'
 		,$country['flag']
-		,$country['flag']
+		,$country['flag']					
+		);
+		$flag = $img;	
+		$name = sprintf('%s<br/>%s'
 		,$country['country_name'] 
 		,$country['english_name'] 
+		);
+		if (strlen($country['post_name']) > 0) {
+			$flag = sprintf('<a href="%s" target="_blank">%s</a>'
+			,"/".$country['post_name']
+			,$img					
+			);
+
+			$name = sprintf('<a href="%s" target="_blank">%s<br/>%s</a>'
+			,"/".$country['post_name']
+			,$country['country_name'] 
+			,$country['english_name'] 
+			);
+		}
+
+		$output .= sprintf('  
+			<td>%s</td>
+			<td>%s</td>
+			<td>%s</td>
+			<td>%s</td>
+		</tr>'
+		,$flag
+		,$name
 		,$country['capital'] 
 		,str_replace(",", "<br/>", $country['city'])
 		);
@@ -138,9 +156,9 @@ function get_the_content_time_difference() {
 		<table border="1" cellpadding="3">
 			<tr>
 				<th width="10px" style="text-align:center">地<br/>域</th>
-				<th width="120px">国名</th>
+				<th width="130px">国名</th>
 				<th width="110px">日本との時差</th>
-				<th width="130px">協定世界時(UTC)</th>
+				<th width="130px">協定世界時<br/>(UTC)</th>
 				<th width="150px">国内時差地図へ</th>
 			</tr>';
 
@@ -271,7 +289,7 @@ function get_the_content_time_difference_city($country_id) {
 			<tr>';
 		if($row == 0) {
 			$output .= sprintf('
-				<td style="text-align:center" rowspan="%1s">
+				<td style="text-align:center;" rowspan="%1s">
 					%2s
 				</td>'
 			,count($areas)
@@ -1480,7 +1498,6 @@ function get_the_content_country($country_id) {
 
 	$output .= sprintf('
 	<h4 class="tbhd4">基本情報</h4>
-	<!--more-->
 	<table cellpadding="3" class="tablecss01" style"display:block;">
 		<tr>	<th class="tbth">国旗</th><td style="padding:5px;">%s</td></tr>
 		<tr>	<th class="nowrap">国名</th>	<td style="width:100%%">%s</td></tr>
@@ -2263,7 +2280,7 @@ function get_the_content_country_Flights($country_id) {
 		$output .= sprintf('
 		<tr>  
 			<td class="nowrap" style="width:110px" rowspan="%s">%s(%s)</td>
-			<td class="nowrap" style="width:310px">%s(%s)</td>
+			<td class="nowrap" style="">%s(%s)</td>
 			<td class="nowrap" style="width:200px"><a href="%s" target="_blank" rel="nofollow">%s</a></td>
 		</tr>'
 		,$cnts[$i]["count"]
@@ -2668,7 +2685,7 @@ function get_the_content_page( $post_name ) {
 
 	$output = '';
 	switch ($post_name) {
-		case "city":
+		case "asia":
 			$output .= get_the_content_city();
 			break;
 		case "time_difference":
@@ -2718,5 +2735,55 @@ function get_the_content_page( $post_name ) {
 			}
 			break;
 	}
+	return $output;
+}
+
+/**
+ *
+ * トップページ
+ *
+ */
+function get_the_content_country_top() {
+	global $wpdb;
+
+	$sql = ("
+		SELECT 
+			  c.country_id
+			, c.country_name
+			, c.english_name
+			, c.post_name
+			, REPLACE(mu.common_val, '%s', flag) AS flag_url
+		 FROM $wpdb->posts p
+		INNER JOIN $wpdb->m_country c
+		   ON p.post_name = c.post_name
+		 LEFT JOIN $wpdb->m_common mu
+		   ON mu.common_id = 101
+		  AND mu.common_subid = 1
+		WHERE p.post_status = 'publish'
+		ORDER BY c.country_id
+	"
+	);
+
+	$results = $wpdb->get_results($sql);
+	$output = "";
+	foreach ($results as $result) {
+		$output .= sprintf('
+  <article id="post-top-%s" class="popular_post_box post-top-%s post status-publish format-standard hentry category-country tag-8 tag-7 tag-4 tag-5 tag-6">
+    <a href="%s" class="wrap-a">
+		<p class="p_date" style="background:none;"><img src="%s" alt="%s" style="border:solid 1px #000000;" width="800" height="533"/></p>
+		<h3 style="margin-left:60px">%s</h3>
+    </a>
+  </article>
+  		'
+		,$result->country_id
+		,$result->country_id
+		,$result->post_name
+		,$result->flag_url
+		,$result->english_name
+		,$result->country_name
+		);
+	}
+        // <img src="%s" alt="%s" width="800" height="533"/>
+//  width="800" height="533"
 	return $output;
 }

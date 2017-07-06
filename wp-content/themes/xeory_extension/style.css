@@ -1623,7 +1623,7 @@ article.page .post-header {
 .side-widget a {
   color: #47B39D;
   text-decoration: underline;
-  display: block;
+  /*display: block;*/
 }
 .side-widget a:hover {
   color: #47B39D;

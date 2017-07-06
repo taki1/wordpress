@@ -1,16 +1,26 @@
 <?php get_header(); ?>
 
-<div id="main_visual">
-  <div class="wrap">
+<!--<div id="main_visual">-->
+  <!--<div class="wrap">
     <h2><?php echo nl2br(get_option('top_catchcopy'));?></h2>
     <p><?php echo nl2br(get_option('top_description'));?></p>
-  </div><!-- .wrap -->
-</div>
+  </div>--> <!-- .wrap -->
+<!--</div>-->
 
 <div id="content">
 
 <div id="main">
   <div class="main-inner">
+
+<!-- ADD -->
+<div id="country_post_content" class="front-loop">
+<div class="wrap">
+  <div class="front-loop-cont">
+<?php echo get_the_content_country_top(); ?>
+  </div><!-- /front-loop-cont -->
+</div><!-- /wrap -->
+</div><!-- country_post_content -->
+<!-- ADD END-->
 
 <div id="popular_post_content" class="front-loop">
 
@@ -124,7 +134,8 @@
           echo $cat->cat_name;
         } ?></p>
             <h3><?php the_title(); ?></h3>
-            <p class="p_date"><span class="date-y"><?php the_time('Y'); ?></span><span class="date-mj"><?php the_time('m/j'); ?></span></p></a>
+            <!--<p class="p_date"><span class="date-y"><?php the_time('Y'); ?></span><span class="date-mj"><?php the_time('m/j'); ?></span></p>-->
+      </a>
   </article>
 
 <?php
@@ -142,7 +153,7 @@
 
 
 <!-- クローズアップ -->
-<div id="front-contents" class="front-main-cont">
+<!--<div id="front-contents" class="front-main-cont">
 <?php
   $icon = 'none';
   $bzb_ruby = '';
@@ -197,12 +208,14 @@
 ?>
 
 
-</div><!-- /front-contents -->
+</div>-->
+<!-- /front-contents -->
+<!-- クローズアップ END -->
 
 
 
 <!-- サービス紹介 -->
-<?php
+<!--<?php
   $icon = 'none';
   $title = '';
   $bzb_ruby = '';
@@ -255,10 +268,12 @@
     </div>
   </div>
 
-</div><!-- /front-contents -->
+</div>-->
+<!-- /front-contents -->
+<!-- サービス紹介 END -->
 
 <!-- 会社概要 -->
-<div id="front-company" class="front-main-cont">
+<!--<div id="front-company" class="front-main-cont">
   <?php 
     $companies = get_option('company');
     $use_company_map = get_option('use_company_map');
@@ -310,7 +325,9 @@
       </div>
     </div>
   </section>
-</div><!-- front-company -->
+</div>-->
+<!-- front-company -->
+<!-- 会社概要 END -->
 
 <!-- お問い合わせ -->
 <div id="front-contact" class="front-main-cont">

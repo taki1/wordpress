@@ -40,7 +40,7 @@
         </div>
       </header>
 
-      <div class="post-meta-area">
+      <!--<div class="post-meta-area">
         <ul class="post-meta list-inline">
           <li class="date" itemprop="datePublished" datetime="<?php the_time('c');?>"><i class="fa fa-clock-o"></i> <?php the_time('Y.m.d');?></li>
         </ul>
@@ -52,7 +52,7 @@
             <i class="fa fa-comments"></i> <span class="count"><?php comments_number('0', '1', '%'); ?></span>
           </li>
         </ul>
-      </div>
+      </div>-->
       
       <?php if( get_the_post_thumbnail() ) : ?>
       <div class="post-thumbnail">
@@ -88,7 +88,7 @@
       
     </article>
       
- <?php bzb_show_avatar();?>
+ <!--<?php bzb_show_avatar();?>-->
     
     
     <?php comments_template( '', true ); ?>

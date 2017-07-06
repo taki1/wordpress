@@ -11,6 +11,7 @@ wp_head();
 
 <?php echo get_option('analytics_tracking_code');?>
 
+<link rel="shortcut icon" href="/wp-content/uploads/favicon.ico">
 </head>
 
 <body <?php body_class();?> itemschope="itemscope" itemtype="http://schema.org/WebPage">
