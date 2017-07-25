@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /*
  Theme Name:   xeory Child
  Template:     xeory_extension
@@ -29,7 +30,8 @@ body.color04 .post-content table td
   /*border: #ddd solid 1px;*/
   border: 1px #008 solid;
   font-weight: bold;
-  color: #000;
+  /* color: #000; */
+  color:#2F3437;
   /*width:100%;
   display:block;*/
 }
@@ -90,5 +92,43 @@ body.color02 .post-loop-wrap .post-footer a.morelink {
   border:1px solid;
   border-bottom:none;
   font-weight:bold !important;
-  color:#000;
+  color:#292934;
+}
+
+.con_info {
+  color:#292934;
+}  
+
+/* サイドバーアドセンス位置調整 */
+.side-ad{
+  text-align:center;  /* 中央寄せ */
+  margin-top:10px;    /* 上に余白 */
+  margin-bottom:0px; /* 下に余白 */
+}
+
+div.tate-line{
+	float:right;
+	width:1.05em;
+	line-height:1.05em;
+	margin-right:0.3em;
+	margin-left:0.3em;
+	padding-bottom:0.2em;
+	font-family:'ヒラギノ角ゴ ProN','Hiragino Kaku Gothic ProN','ヒラギノ角ゴ Pro','Hiragino Kaku Gothic Pro','メイリオ','Meiryo','ＭＳ ゴシック','MS Gothic','SimHei','HiraKakuProN-W3','STHeitiJ-Medium','TakaoExゴシック','TakaoExGothic','MotoyaLCedar','Droid Sans Japanese','Droid Sans Fallback',monospace;
+	word-wrap:break-word;
+	direction:ltr;
+}
+.ptimg img {
+  max-width : 100% ;
+  min-width:200px;
+  height : auto ;
+}
+.font14 {
+  font-size:14px;
+}
+
+@media screen and (max-width: 991px) {
+  /* tablet */
+  .tab_no {
+    display: none;
+  }
 }
