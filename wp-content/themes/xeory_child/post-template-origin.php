@@ -1537,6 +1537,25 @@ function get_the_content_country($country_id) {
 	$output .= get_the_content_country_visa($country_id);
 	$output .= get_the_content_country_heritage($country_id);
 	$output .= get_the_content_country_book($country_id);
+
+	$url = '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<!-- res -->
+	<ins class="adsbygoogle"
+		 style="display:block"
+		 data-ad-client="ca-pub-1780702416565463"
+		 data-ad-slot="9275678635"
+		 data-ad-format="auto"></ins>
+	<script>
+	(adsbygoogle = window.adsbygoogle || []).push({});
+	</script>';
+
+	$output .= sprintf('
+	<table cellpadding="3" class="tablecss01 ori" style"display:block;">
+		<tr><td style="padding:5px;">%s</td></tr>
+	</table>'
+	,localval($url, $val)
+	);
+
 	$output .= get_the_content_country_Flights($country_id);
 	$output .= get_the_content_country_ticket($country_id);
 	$output .= get_the_content_country_hotel($country_id);
@@ -2107,11 +2126,28 @@ function get_the_content_country_introduction($country_id) {
 	,count($sites)
 	);
 	foreach ($sites as $site) {
+		$url = $site["site_url"];
+		if(mb_substr($site["site_url"],0,1)=="<") {
+			if(strpos($_SERVER["HTTP_HOST"], "localhost") !== false) {
+				$url = $site["site_val"];
+			}
+		} else {
+			$url = sprintf('<a href="%s" target="_blank" rel="nofollow">%s</a>'
+			,$site["site_url"]
+			,$site["site_val"]
+			);
+		}
+
+		// $output .= sprintf('
+		// <tr>  <th class="tbth">%s</th>  <td><a href="%s" target="_blank" rel="nofollow">%s</a></td></tr>'
+		// ,$site["common_name"]
+		// ,$site["site_url"]
+		// ,$site["site_val"]
+		// );
 		$output .= sprintf('
-		<tr>  <th class="tbth">%s</th>  <td><a href="%s" target="_blank" rel="nofollow">%s</a></td></tr>'
+		<tr>  <th class="tbth afimg">%s</th>  <td>%s</td></tr>'
 		,$site["common_name"]
-		,$site["site_url"]
-		,$site["site_val"]
+		,$url
 		);
 	}
 
@@ -2138,6 +2174,9 @@ function get_the_content_country_book($country_id) {
 			, MAX(IF(b.book_url_id=0,b.book_url,'')) AS url0
 			, MAX(IF(b.book_url_id=1,b.book_url,'')) AS url1
 			, MAX(IF(b.book_url_id=2,b.book_url,'')) AS url2
+			, MAX(IF(b.book_url_id=0,b.book_val,'')) AS val0
+			, MAX(IF(b.book_url_id=1,b.book_val,'')) AS val1
+			, MAX(IF(b.book_url_id=2,b.book_val,'')) AS val2
 		 FROM $wpdb->m_common m
 		INNER JOIN $wpdb->m_book b
 		   ON country_id = %s
@@ -2179,6 +2218,16 @@ function get_the_content_country_book($country_id) {
 	'
 	);
 	for ($r = 0; $r < count($books); $r++) {
+		$url0 = $books[$r]["url0"];
+		$url1 = $books[$r]["url1"];
+		$url2 = $books[$r]["url2"];
+		if(strpos($_SERVER["HTTP_HOST"], "localhost") !== false)
+		{
+			$url0 = "";
+			$url1 = $books[$r]["val1"];
+			$url2 = $books[$r]["val2"];
+		}
+
 		if ($books[$r]["url0"] == '') {
 			if (strlen($books[$r]["url1"]) > 0 && strlen($books[$r]["url2"]) > 0) {
 				$output .= sprintf('
@@ -2188,15 +2237,15 @@ function get_the_content_country_book($country_id) {
 			<tr>
 				<td colspan="2"><div class="mg0">%s</div></td>
 			</tr>'
-				,$books[$r]["url1"]
-				,$books[$r]["url2"]
+				,$url1
+				,$url2
 			);
 			} else {
 				$output .= sprintf('
 			<tr>
 				<td colspan="2"><div class="mg0">%s</div></td>
 			</tr>'
-				,(strlen($books[$r]["url2"]) > 0) ? $books[$r]["url2"] : $books[$r]["url1"]
+				,(strlen($url2) > 0) ? $url2 : $url1
 				);	
 			}		
 		} else {
@@ -2209,9 +2258,9 @@ function get_the_content_country_book($country_id) {
 				<tr>
 					<td style="border-left:none;border-top:none;"><div class="mg0">%s</div></td>
 				</tr>'
-					,$books[$r]["url0"]
-					,$books[$r]["url1"]
-					,$books[$r]["url2"]
+					,$url0
+					,$url1
+					,$url2
 				);
 			} else {
 				$output .= sprintf('
@@ -2219,8 +2268,8 @@ function get_the_content_country_book($country_id) {
 					<td style="border-right:none;"><div class="mg0">%s</div></td>
 					<td style="border-left:none;"><div class="mg0">%s</div></td>
 				</tr>'
-					,$books[$r]["url0"]
-					,(strlen($books[$r]["url2"]) > 0) ? $books[$r]["url2"] : $books[$r]["url1"]
+					,$url0
+					,(strlen($url2) > 0) ? $url2 : $url1
 				);				
 			}
 		}
@@ -2417,7 +2466,7 @@ function get_the_content_country_ticket($country_id) {
 
 	$output = sprintf('
 	<h4 class="tbhd4">航空券を探す</h4>  
-	<table class="tablecss01" cellpadding="3">
+	<table class="tablecss01 ori" cellpadding="3">
 	'
 	);
 
@@ -2432,27 +2481,38 @@ function get_the_content_country_ticket($country_id) {
 		// } else {
 		// 	$url = $tickets[$r]["ticket_url"];
 		// }
-		// $output .= sprintf('
-		// <tr>  <th rowspan="%s" class="tbth" style="">%s</th> <td>%s</td></tr>'
-		// ,$cnts[$i]["count"]
-		// ,$cnts[$i]["common_name"]
-		// ,$url
-		// );
+		// $url = localval($tickets[$r]["ticket_url"], $tickets[$r]["city_name"]."行き航空券を探す");
+		if(strpos($tickets[$r]["ticket_url"], 'http') === 0)
+		{
+			$url = sprintf('<a href="%s" target="_blank" rel="nofollow">%s行き航空券を探す</a>'
+			, $tickets[$r]["ticket_url"]
+			, $tickets[$r]["city_name"]);
+		} else {
+			$url = localval($tickets[$r]["ticket_url"], $tickets[$r]["city_name"]."行き航空券を探す");	
+		}
+	
 		$output .= sprintf('
-		<tr> <th>%s</th></tr>'
+		<tr>  <th rowspan="%s" class="tbth afimg" style="">%s</th> <td>%s</td></tr>'
+		,$cnts[$i]["count"]
 		,$cnts[$i]["common_name"]
+		,$url
 		);
-		// $r++;
-		for ($j = 0; $j < $cnts[$i]["count"]; $j++) {
+
+		// $output .= sprintf('
+		// <tr> <th>%s</th></tr>'
+		// ,$cnts[$i]["common_name"]
+		// );
+		$r++;
+		for ($j = 1; $j < $cnts[$i]["count"]; $j++) {
 			if(strpos($tickets[$r]["ticket_url"], 'http') === 0)
 			{
 				$url = sprintf('<a href="%s" target="_blank" rel="nofollow">%s行き航空券を探す</a>'
 				, $tickets[$r]["ticket_url"]
 				, $tickets[$r]["city_name"]);
 			} else {
-				$url = $tickets[$r]["ticket_url"];
+				$url = localval($tickets[$r]["ticket_url"], $tickets[$r]["city_name"]."行き航空券を探す");	
 			}
-				$output .= sprintf('
+			$output .= sprintf('
 		<tr><td>%s</td></tr>'
 			,$url
 			);
@@ -2462,7 +2522,6 @@ function get_the_content_country_ticket($country_id) {
 
 	$output .= '
 	</table>';
-
 	return $output;
 }
 
@@ -2518,28 +2577,30 @@ function get_the_content_country_hotel($country_id) {
 
 	$output = sprintf('
 	<h4 class="tbhd4">ホテルを探す</h4>  
-	<table class="tablecss01" cellpadding="3">
+	<table class="tablecss01 ori" cellpadding="3">
 	'
 	);
 
 	$r = 0;
 	for ($i = 0; $i < count($cnts); $i++) {
-		// $output .= sprintf('
-		// <tr>  <th rowspan="%s" class="tbth" style="">%s</th>  <td>%s</td></tr>'
-		// ,$cnts[$i]["count"]
-		// ,$cnts[$i]["common_name"]
-		// ,$hotels[$r]["hotel_url"]
-		// );
-		// $r++;
+		$url = localval($hotels[$r]["hotel_url"], $hotels[$r]["city_name"]."のホテルを探す");	
 		$output .= sprintf('
-		<tr> <th>%s</th></tr>'
+		<tr>  <th rowspan="%s" class="tbth afimg" style="">%s</th>  <td>%s</td></tr>'
+		,$cnts[$i]["count"]
 		,$cnts[$i]["common_name"]
+		,$url
 		);
-		for ($j = 0; $j < $cnts[$i]["count"]; $j++) {
+		$r++;
+		// $output .= sprintf('
+		// <tr> <th>%s</th></tr>'
+		// ,$cnts[$i]["common_name"]
+		// );
+		for ($j = 1; $j < $cnts[$i]["count"]; $j++) {
+			$url = localval($hotels[$r]["hotel_url"], $hotels[$r]["city_name"]."のホテルを探す");	
 			$output .= sprintf('
 		<tr><td>%s</td></tr>'
-			,$hotels[$r]["hotel_url"]
-		);
+			,$url
+			);
 			$r++;		
 		}
 	}
@@ -2596,27 +2657,25 @@ function get_the_content_country_tour($country_id) {
 
 	$output = sprintf('
 	<h4 class="tbhd4">ツアーを探す</h4>  
-	<table class="tablecss01" cellpadding="3">
+	<table class="tablecss01 ori" cellpadding="3">
 	'
 	);
 
 	$r = 0;
 	for ($i = 0; $i < count($cnts); $i++) {
-		// $output .= sprintf('
-		// <tr>  <th rowspan="%s" class="tbth" style="">%s</th>  <td>%s</td></tr>'
-		// ,$cnts[$i]["count"]
-		// ,$cnts[$i]["common_name"]
-		// ,$tours[$r]["tour_url"]
-		// );
-		// $r++;
+		$url = localval($tours[$r]["tour_url"], $tours[$r]["tour_val"]);	
 		$output .= sprintf('
-		<tr> <th>%s</th></tr>'
+		<tr>  <th rowspan="%s" class="tbth afimg" style="">%s</th>  <td>%s</td></tr>'
+		,$cnts[$i]["count"]
 		,$cnts[$i]["common_name"]
+		,$url
 		);
-		for ($j = 0; $j < $cnts[$i]["count"]; $j++) {
+		$r++;
+		for ($j = 1; $j < $cnts[$i]["count"]; $j++) {
+			$url = localval($tours[$r]["tour_url"], $tours[$r]["tour_val"]);	
 			$output .= sprintf('
 		<tr><td>%s</td></tr>'
-			,$tours[$r]["tour_url"]
+			,$url
 			);
 			$r++;		
 		}
@@ -2673,7 +2732,7 @@ function get_the_content_country_option($country_id) {
 
 	$output = sprintf('
 	<h4 class="tbhd4">現地オプショナルツアーを探す</h4>  
-	<table class="tablecss01" cellpadding="3">
+	<table cellpadding="3" class="tablecss01 ori">
 	'
 	);
 
@@ -2686,17 +2745,38 @@ function get_the_content_country_option($country_id) {
 		// ,$options[$r]["option_url"]
 		// );
 		// $r++;
+
+		// $output .= sprintf('
+		// <tr> <th>%s</th></tr>'
+		// ,$cnts[$i]["common_name"]
+		// );
+		// for ($j = 1; $j < $cnts[$i]["count"]; $j++) {
+		// 	$url = $options[$r]["option_url"];
+		// 	if(strpos($_SERVER["HTTP_HOST"], "localhost") !== false)
+		// 	{
+		// 		$url = $options[$r]["option_val"];
+		// 	}
+		// 	$output .= sprintf('
+		// <tr><td>%s</td></tr>'
+		// 	,$url
+		// 	);
+		// 	$r++;		
+		// }
+
+		$url = localval($options[$r]["option_url"], $options[$r]["option_val"]);	
 		$output .= sprintf('
-		<tr> <th>%s</th></tr>'
+		<tr>  <th rowspan="%s" class="tbth afimg" style="">%s</th>  <td>%s</td></tr>'
+		,$cnts[$i]["count"]
 		,$cnts[$i]["common_name"]
+		,$url
 		);
-		for ($j = 0; $j < $cnts[$i]["count"]; $j++) {
-			$output .= sprintf('
-		<tr><td>%s</td></tr>'
-			,$options[$r]["option_url"]
-			);
+		$r++;
+		for ($j = 1; $j < $cnts[$i]["count"]; $j++) {
+			$url = localval($options[$r]["option_url"], $options[$r]["option_val"]);	
+			$output .= sprintf('<tr><td>%s</td></tr>' ,$url);
 			$r++;		
 		}
+
 	}
 
 	$output .= '
@@ -2865,5 +2945,19 @@ function get_the_content_country_top() {
 	}
         // <img src="%s" alt="%s" width="800" height="533"/>
 //  width="800" height="533"
+	return $output;
+}
+
+/**
+ *
+ * localhostの場合、valを返す
+ * アフィリエイトリンクをlocalhostで表示しないようにするため
+ */
+function localval($url, $val) {
+	$output = $url;
+	if(strpos($_SERVER["HTTP_HOST"], "localhost") !== false)
+	{
+		$output = $val;			
+	}	
 	return $output;
 }

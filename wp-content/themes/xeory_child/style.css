@@ -160,4 +160,9 @@ div.tate-line{
   .orik {	
     white-space:normal !important;
   }
+
+  .afimg img {
+    min-width:100px;
+    height : auto ;
+  }
 }
