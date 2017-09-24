@@ -7,8 +7,9 @@
 function get_the_content_city() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
-
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
+	
 	$sql2 = "
 		SELECT 
 		  c.country_id
@@ -21,13 +22,13 @@ function get_the_content_city() {
 		, c.city
 		, c.post_name
 		, REPLACE(mu.common_val, '%s', c.flag) AS flag_url
-		FROM $wpdb->m_country c
+		 FROM $wpdb->m_country c
 		INNER JOIN $wpdb->m_area a
-		ON a.area_id = c.area_id
+		   ON a.area_id = c.area_id
 		 LEFT JOIN $wpdb->m_common mu
 		   ON mu.common_id = 101
 		  AND mu.common_subid = 1
-	";
+		WHERE a.area_no = ".$area_no;
 	$results2 = $wpdb->get_results($sql2);
 	$countrys = bzb_object2array($results2);
 
@@ -111,15 +112,19 @@ function get_the_content_city() {
 function get_the_content_time_difference() {
 	global $wpdb;
 
-	$sql = "
+	$area_no = 1;
+	$sql = sprintf("
 		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
-		INNER JOIN $wpdb->m_time t
-		ON c.country_id = t.country_id
-		GROUP BY area_id
-	";
+		  c.area_id
+		, COUNT(c.area_id) AS cnt
+		 FROM $wpdb->m_country c
+		INNER JOIN $wpdb->m_area a
+		   ON a.area_id = c.area_id
+	    INNER JOIN $wpdb->m_time t
+		   ON c.country_id = t.country_id
+		WHERE a.area_no = %s
+		   GROUP BY c.area_id
+	", $area_no);
 	$results = $wpdb->get_results($sql);
  	$areas = bzb_object2array($results);
 
@@ -133,7 +138,7 @@ function get_the_content_time_difference() {
 	$results1 = $wpdb->get_results($sql1);
 	$countrys = bzb_object2array($results1);
 
-	$sql2 = "
+	$sql2 = sprintf("
 		SELECT 
 		  c.country_id
 		, c.country_name
@@ -144,15 +149,16 @@ function get_the_content_time_difference() {
 		, t.time_difference
 		, t.minus_flg
 		, m.common_val
-		FROM $wpdb->m_time t
+		 FROM $wpdb->m_time t
 		INNER JOIN $wpdb->m_country c
-		ON c.country_id = t.country_id
+		   ON c.country_id = t.country_id
 		INNER JOIN $wpdb->m_area a
-		ON a.area_id = c.area_id
-		LEFT  JOIN $wpdb->m_common m
-        ON CONCAT(IF(t.minus_flg = '1', '-',''),t.time_difference) = m.common_name
+		   ON a.area_id = c.area_id
+		 LEFT JOIN $wpdb->m_common m
+		   ON CONCAT(IF(t.minus_flg = '1', '-',''),t.time_difference) = m.common_name
+		WHERE a.area_no = %s
         ORDER BY c.country_id
-	";
+	", $area_no);
 	$results2 = $wpdb->get_results($sql2);
 	$times = bzb_object2array($results2);
 
@@ -527,7 +533,8 @@ function get_the_content_visa() {
 function get_the_content_rate() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
 
 	$sql2 = "
 		SELECT 
@@ -564,7 +571,7 @@ function get_the_content_rate() {
 	foreach ($rates as $rate) {
 		$reg = '/<span class=bld>(.*?) JPY<\/span>/';
 		$yhtml = sprintf(
-			'https://www.google.com/finance/converter?a=1&from=%s&to=JPY'
+			'https://finance.google.com/finance/converter?a=1&from=%s&to=JPY'
 			,$rate['english_rate']);
 		$get_yhtml = file_get_contents($yhtml);
 
@@ -577,7 +584,7 @@ function get_the_content_rate() {
 		}
 
 		$dhtml = sprintf(
-			'https://www.google.com/finance/converter?a=1&from=USD&to=%s'
+			'https://finance.google.com/finance/converter?a=1&from=USD&to=%s'
 			,$rate['english_rate']);
 		$get_dhtml = file_get_contents($dhtml);
 
@@ -632,7 +639,8 @@ function get_the_content_rate() {
 function get_the_content_language() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
 
 	$sql1 = "
 		SELECT 
@@ -728,7 +736,8 @@ function get_the_content_language() {
 function get_the_content_religion() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
 
 	$sql1 = "
 		SELECT 
@@ -742,7 +751,7 @@ function get_the_content_religion() {
 	$results1 = $wpdb->get_results($sql1);
 	$countrys = bzb_object2array($results1);
 
-	$sql2 = "
+	$sql2 = sprintf("
 		SELECT 
 		  c.country_id
 		, c.country_name
@@ -751,16 +760,17 @@ function get_the_content_religion() {
 		, r.religion_common_subid
         , m.common_name AS religion_name
         , m.common_val
-		FROM $wpdb->m_country c
-		LEFT JOIN $wpdb->m_religion r
-		ON c.country_id = r.country_id
+		 FROM $wpdb->m_country c
+		 LEFT JOIN $wpdb->m_religion r
+	 	   ON c.country_id = r.country_id
 		INNER JOIN $wpdb->m_area a
-		ON a.area_id = c.area_id
-        LEFT JOIN $wpdb->m_common m
-        ON m.common_id = 3
-        AND m.common_subid = r.religion_common_subid
+		   ON a.area_id = c.area_id
+		  AND a.area_no = %s
+         LEFT JOIN $wpdb->m_common m
+           ON m.common_id = 3
+          AND m.common_subid = r.religion_common_subid
 		ORDER BY c.country_id, r.religion_id
-	";
+	", $area_no);
 	$results2 = $wpdb->get_results($sql2);
 	$religions = bzb_object2array($results2);
 
@@ -827,9 +837,10 @@ function get_the_content_religion() {
 function get_the_content_heritages_num() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
 
-	$sql2 = "
+	$sql2 = sprintf("
 		SELECT 
 		  c.country_id
 		, c.country_name
@@ -839,14 +850,15 @@ function get_the_content_heritages_num() {
 		, SUM(IF(h.heritage_subid=1,1,0)) AS cultural
 		, SUM(IF(h.heritage_subid=2,1,0)) AS natural_
 		, SUM(IF(h.heritage_subid=3,1,0)) AS mixed
-		FROM $wpdb->m_country c
-		LEFT JOIN $wpdb->m_heritage h
-        ON c.country_id = h.country_id
+		 FROM $wpdb->m_country c
+		 LEFT JOIN $wpdb->m_heritage h
+           ON c.country_id = h.country_id
 		INNER JOIN $wpdb->m_area a
-		ON a.area_id = c.area_id
+		   ON a.area_id = c.area_id
+		  AND a.area_no = %s
 		GROUP BY c.country_id, c.country_name
 		ORDER BY c.country_id
-	";
+	", $area_no);
 	$results2 = $wpdb->get_results($sql2);
 	$heritages = bzb_object2array($results2);
 
@@ -906,7 +918,8 @@ function get_the_content_heritages_num() {
 function get_the_content_plug() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
 
 	$sql1 = "
 		SELECT 
@@ -920,7 +933,7 @@ function get_the_content_plug() {
 	$results1 = $wpdb->get_results($sql1);
 	$countrys = bzb_object2array($results1);
 
-	$sql2 = "
+	$sql2 = sprintf("
 		SELECT 
 		  c.country_id
 		, c.country_name
@@ -930,16 +943,17 @@ function get_the_content_plug() {
         , p.plug_subid
         , m.common_name AS plug_name
         , m.common_val
-		FROM  $wpdb->m_country c
+		 FROM  $wpdb->m_country c
 		 LEFT JOIN $wpdb->m_plug p
 		   ON c.country_id = p.country_id
 		INNER JOIN $wpdb->m_area a
 		   ON a.area_id = c.area_id
+		  AND a.area_no = %s
          LEFT JOIN $wpdb->m_common m
            ON m.common_id = 5
           AND m.common_subid = p.plug_subid
 		ORDER BY c.country_id, p.plug_id
-	";
+	", $area_no);
 	$results2 = $wpdb->get_results($sql2);
 	$plugs = bzb_object2array($results2);
 
@@ -1009,9 +1023,10 @@ function get_the_content_plug() {
 function get_the_content_gpi() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
 
-	$sql = "
+	$sql = sprintf("
 		SELECT 
 		  c.country_id
 		, c.country_name
@@ -1026,7 +1041,7 @@ function get_the_content_gpi() {
  		 FROM  $wpdb->m_country c
 		INNER JOIN $wpdb->m_area a
 		   ON a.area_id = c.area_id
-
+		  AND a.area_no = %s
         LEFT JOIN(
             SELECT country_id, gpi2016, MAX(common_subid) AS common_subid
              FROM $wpdb->m_gpi_gti
@@ -1066,7 +1081,7 @@ function get_the_content_gpi() {
           ON m2014.common_id = 6
          AND m2014.common_subid = g2014.common_subid
 		ORDER BY c.country_id
-	";
+	", $area_no);
 	$results = $wpdb->get_results($sql);
 	$peaces = bzb_object2array($results);
 
@@ -1131,9 +1146,10 @@ function get_the_content_gpi() {
 function get_the_content_gti() {
 	global $wpdb;
 
-	$areas = get_area_cnt();
+	$area_no = 1;
+	$areas = get_area_cnt($area_no);
 
-	$sql = "
+	$sql = sprintf("
 		SELECT 
 		  c.country_id
 		, c.country_name
@@ -1148,6 +1164,7 @@ function get_the_content_gti() {
  		 FROM  $wpdb->m_country c
 		INNER JOIN $wpdb->m_area a
 		   ON a.area_id = c.area_id
+		  AND a.area_no = %s
 
         LEFT JOIN(
             SELECT country_id, gti2015, MAX(common_subid) AS common_subid
@@ -1189,7 +1206,7 @@ function get_the_content_gti() {
          AND m2013.common_subid = g2013.common_subid
 
 		ORDER BY c.country_id
-	";
+	", $area_no);
 	$results = $wpdb->get_results($sql);
 	$peaces = bzb_object2array($results);
 
@@ -1256,7 +1273,8 @@ function get_the_content_gti() {
 function get_the_content_safety() {
 	global $wpdb;
 
-	$areas = get_area_cnt(true);
+	$area_no = 1;
+	$areas = get_area_cnt($area_no, true);
 
 	$sql1 = "
 		SELECT 
@@ -1398,17 +1416,21 @@ function get_the_content_safety() {
  * エリア別件数取得
  *
  */
-function get_area_cnt($flg = false) {
+function get_area_cnt($area_no, $flg = false) {
 	global $wpdb;
 
 	$sql = sprintf("
 		SELECT 
-		  area_id
-		, COUNT(area_id) AS cnt
-		FROM $wpdb->m_country c
+		  c.area_id
+		, COUNT(c.area_id) AS cnt
+		 FROM $wpdb->m_country c
+		INNER JOIN $wpdb->m_area a
+		   ON a.area_id = c.area_id
+		WHERE a.area_no = %s
 		%s
-		GROUP BY area_id"
-	,$flg ? "WHERE country_id <> 1" : "");
+		GROUP BY c.area_id"
+	,$area_no
+	,$flg ? "  AND country_id <> 1" : "");
 	$results = $wpdb->get_results($sql);
 	return bzb_object2array($results);
 }
@@ -1853,9 +1875,9 @@ function get_the_content_country_rate($rate, $english_rate) {
 	$reg = '/<span class=bld>(.*?) JPY<\/span>/';
 	$yen="";
 	$yhtml = sprintf(
-		'https://www.google.com/finance/converter?a=1&from=%s&to=JPY'
+		'https://finance.google.com/finance/converter?a=1&from=%s&to=JPY'
 		,$english_rate);
-return "";
+
 	if ($yhtml != "") {
 		$get_yhtml = file_get_contents($yhtml);
 		if($get_yhtml === FALSE){
@@ -1867,7 +1889,7 @@ return "";
 	}
 
 	$dhtml = sprintf(
-		'https://www.google.com/finance/converter?a=1&from=USD&to=%s'
+		'https://finance.google.com/finance/converter?a=1&from=USD&to=%s'
 		,$english_rate);
 
 	$doll="";
@@ -2925,7 +2947,6 @@ function get_the_content_country_top() {
 	);
 
 	$results = $wpdb->get_results($sql);
-	$output = "";
 	foreach ($results as $result) {
 		$output .= sprintf('
   <article id="post-top-%s" class="popular_post_box post-top-%s post status-publish format-standard hentry category-country tag-8 tag-7 tag-4 tag-5 tag-6">
@@ -2945,7 +2966,7 @@ function get_the_content_country_top() {
 	}
         // <img src="%s" alt="%s" width="800" height="533"/>
 //  width="800" height="533"
-	return $output;
+return $output;
 }
 
 /**
