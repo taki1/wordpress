@@ -59,7 +59,7 @@ body.color02 .post-loop-wrap .post-footer a.morelink {
 }
 
 .tablecss01 th {
-  width:180px;  
+  width:150px;  
   white-space:nowrap;
   margin-top:0px !important;
   /*background: #87cefa !important;*/
@@ -103,7 +103,7 @@ img[width="1"]{
 }*/
 
 .tbth {
-  width:180px;  
+  width:150px;  
 } 
 
 .tbhd4 {
@@ -147,6 +147,29 @@ div.tate-line{
 }
 .font14 {
   font-size:14px;
+}
+
+
+.map_wrapper {
+  max-width: 640px;
+  min-width: 280px;
+  margin: 0px auto;
+  /* padding: 4px; */
+  border: 1px solid #CCC;  
+}
+  
+.googlemap {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+}
+.googlemap iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 @media screen and (max-width: 991px) {

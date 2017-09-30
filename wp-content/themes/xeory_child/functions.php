@@ -1,5 +1,8 @@
 <?php
 require_once('post-template-origin.php');
+require_once('post-template-origin-area.php');
+require_once('post-template-origin-country.php');
+require_once('post-template-origin-heritage.php');
 add_action( 'wp_enqueue_scripts', 'theme_enqueue_styles' );
 function theme_enqueue_styles() {
   wp_enqueue_style( 'parent-style', get_template_directory_uri() . '/style.css' );
