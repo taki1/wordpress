@@ -68,7 +68,9 @@ function get_the_content_page( $post_name ) {
 				if (count($heritages) > 0){
 					$heritage_id = $heritages[0]->heritage_id;
 					$output .= get_the_content_heritage($heritage_id);
-				}	
+				} else {
+					return "";
+				}
 			}
 			break;
 	}

@@ -498,22 +498,29 @@ function get_the_content_heritage_weather($country_id, $city_id) {
 
 	$maps = $wpdb->get_results($sql);
 	if (count($maps)== 0) return "";
+	$gmap = $maps[0]->map_url;
+	if(strpos($maps[0]->map_url, "<iframe") !== false)
+	{
+		$gmap = sprintf('
+					  <div class="map_wrapper">
+						  <div class="googlemap">
+							  %s
+						  </div>
+					  </div>
+	  ',$maps[0]->map_url); 	
+	}
 	
 	$output .= sprintf('
 	<h4 class="tbhd4">MAP</span></h4>  
 	<table class="tablecss01 ori" cellpadding="3"> 
 		<tr>
 			<td>
-	  			<div class="map_wrapper">
-	  				<div class="googlemap">
-	  					%s
-	  				</div>
-	  			</div>
+	  			%s
 			</td>
 		</tr>
 	</table>
-  ',$maps[0]->map_url); 	
-	  
+  ',$gmap); 	
+
 	$output .= '
 	</table>';
 
