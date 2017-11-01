@@ -1308,6 +1308,7 @@ function get_the_content_country_weather($country_id) {
 		   ON c.country_id = w.country_id
 		  AND c.city_id = w.city_id
 		WHERE w.country_id = %s
+		  AND w.disp_flg = 1
         ORDER BY w.city_id
 	"
 	,$country_id

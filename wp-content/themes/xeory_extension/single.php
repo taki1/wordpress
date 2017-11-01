@@ -53,13 +53,13 @@
           </li>
         </ul>
       </div>-->
-      
+<!--       
       <?php if( get_the_post_thumbnail() ) : ?>
       <div class="post-thumbnail">
         <?php the_post_thumbnail(array(1200, 630, true)); ?>
       </div>
       <?php endif; ?>
-
+ -->
       <section class="post-content" itemprop="text">
         <?php the_content(); ?>
       </section>

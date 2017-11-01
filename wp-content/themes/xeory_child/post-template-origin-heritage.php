@@ -16,9 +16,11 @@
 		, c.city_name
 		, m.common_name AS common_name
 		, h.heritage_name 
+		, s.spot_english
 		, h.registration_year
 		, h.text
 		, h.ticket_city_id
+		, h.hotel_city_id
 	 FROM $wpdb->m_heritage h
 	INNER JOIN $wpdb->m_common m
 	   ON m.common_id = 4
@@ -26,6 +28,9 @@
 	 LEFT JOIN $wpdb->m_city c
 	   ON c.country_id = h.country_id
 	  AND c.city_id = h.city_id
+	 LEFT JOIN $wpdb->m_spot s
+	   ON s.heritage_id = h.heritage_id
+	  AND s.spot_id = 0
 	WHERE h.heritage_id=%s
 	"
 	,$heritage_id
@@ -38,6 +43,7 @@
 	<h4 class="tbhd4">基本情報</h4>
 	<table cellpadding="3" class="tablecss01" style"display:block;">
 		<tr>  <th>世界遺産名</th>  <td>%s</td></tr>
+		<tr>  <th>英語名</th>  <td>%s</td></tr>
 		<tr>  <th>都市</th>  <td>%s</td></tr>
 		<tr>  <th>種類</th>  <td>%s</td></tr>
 		<tr>  <th>登録年</th>  <td>%s年</td></tr>
@@ -45,21 +51,22 @@
 	</table>	
 	'
 	,$heritage->heritage_name
+	,$heritage->spot_english
 	,$heritage->city_name
 	,$heritage->common_name
 	,$heritage->registration_year
-	,""
+	,$heritage->text
 	); 	
 
 	$output .= get_the_content_heritage_spot($heritage_id);
 	$output .= get_the_content_heritage_safety($heritage->country_id, $heritage->city_id);
 	$output .= get_the_content_adsbygoogle();	
 	$output .= get_the_content_heritage_ticket($heritage->country_id, $heritage->ticket_city_id);
-	$output .= get_the_content_heritage_hotel($heritage->country_id, $heritage->city_id);
+	$output .= get_the_content_heritage_hotel($heritage->country_id, $heritage->hotel_city_id);
 	$output .= get_the_content_heritage_option($heritage_id);
-	$output .= get_the_content_heritage_introduction($heritage->country_id, $heritage->city_id);
+	$output .= get_the_content_heritage_introduction($heritage->country_id, $heritage->city_id, $heritage_id);
 	$output .= get_the_content_heritage_weather($heritage->country_id, $heritage->city_id);
-	$output .= get_the_content_heritage_map($heritage->country_id, $heritage->city_id);
+	$output .= get_the_content_heritage_map($heritage->country_id, $heritage->city_id, $heritage_id);
 	
 	return $output;	
 }
@@ -77,6 +84,7 @@
 		  s.heritage_id
 		, s.spot_id
 		, s.spot_name 
+		, s.spot_english
 		, s.spot_photo
 		, s.spot_description
 	 FROM $wpdb->m_spot s
@@ -111,12 +119,18 @@
 
 		foreach ($spots as $spot) {
 			if ($spot->spot_id != 0) {
+				$name = $spot->spot_name;
+				if (strlen($spot->spot_english) > 0) {
+					$name = sprintf('%s<br/>%s'
+							, $spot->spot_name
+							, $spot->spot_english);
+				}
 				$output .= sprintf('
 		<tr>  
 			<th>%s</th>
 		</tr>'
-				,$spot->spot_name);
-
+				,$name);
+			
 				if (strlen($spot->spot_photo) > 0) {
 					$output .= sprintf('
 		<tr>  
@@ -204,7 +218,7 @@ function get_the_content_heritage_safety($country_id, $city_id) {
  * アジア各国 世界遺産 紹介サイト
  *
  */
-function get_the_content_heritage_introduction($country_id, $city_id) {
+function get_the_content_heritage_introduction($country_id, $city_id, $heritage_id) {
 	global $wpdb;
 
 	$sql = sprintf("
@@ -215,13 +229,14 @@ function get_the_content_heritage_introduction($country_id, $city_id) {
 		 FROM $wpdb->m_common m
 		INNER JOIN $wpdb->m_site s
 		   ON s.country_id = %s
-		  AND s.city_id = %s
+		  AND s.city_id in (%s,%s)
 		  AND m.common_subid = s.site_id
 		WHERE m.common_id = 10
 		ORDER BY s.site_id
 	"
 	,$country_id
 	,$city_id
+	,$heritage_id
 	);
 
 	$sites = $wpdb->get_results($sql);
@@ -488,7 +503,7 @@ function get_the_content_heritage_weather($country_id, $city_id) {
  * アジア各国 世界遺産 MAP
  *
  */
- function get_the_content_heritage_map($country_id, $city_id) {
+ function get_the_content_heritage_map($country_id, $city_id, $heritage_id) {
 	global $wpdb;
 
 	$sql = sprintf("
@@ -498,10 +513,12 @@ function get_the_content_heritage_weather($country_id, $city_id) {
 			, m.map_url
  		 FROM $wpdb->m_map m
 		WHERE m.country_id = %s
-		  AND m.city_id = %s
+		  AND m.city_id in(%s,%s)
+		ORDER BY m.city_id DESC
 	"
 	,$country_id
 	,$city_id
+	,$heritage_id
 	);
 
 	$maps = $wpdb->get_results($sql);
