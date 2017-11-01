@@ -111,11 +111,11 @@ msgstr "Akismet は現在サイトをスパムから保護しています。ブ�
 msgid "Used by millions, Akismet is quite possibly the best way in the world to <strong>protect your blog from spam</strong>. It keeps your site protected even while you sleep. To get started: activate the Akismet plugin and then go to your Akismet Settings page to set up your API key."
 msgstr "何百万もの利用実績がある Akismet は<strong>あなたのブログをスパムから保護する</strong>最良の方法といえるでしょう。あなたが眠りについている時間でさえ、Akismet は常時サイトを守り続けます。始めるのは簡単。Akismet プラグインを有効化したら設定ページで API キーを設定するだけです。"
 
-#: class.akismet-admin.php:1094
+#: class.akismet-admin.php:1108
 msgid "Used by millions, Akismet is quite possibly the best way in the world to <strong>protect your blog from spam</strong>. Your site is fully configured and being protected, even while you sleep."
 msgstr "何百万もの利用実績がある Akismet は<strong>あなたのブログをスパムから保護する</strong>最良の方法といえるでしょう。このサイトでの設定は完了しており Akismet が常時保護しています。"
 
-#: class.akismet-admin.php:1097
+#: class.akismet-admin.php:1111
 msgid "Used by millions, Akismet is quite possibly the best way in the world to <strong>protect your blog from spam</strong>. It keeps your site protected even while you sleep. To get started, just go to <a href=\"admin.php?page=akismet-key-config\">your Akismet Settings page</a> to set up your API key."
 msgstr "何百万もの利用実績がある Akismet は<strong>あなたのブログをスパムから保護する</strong>最良の方法といえるでしょう。あなたが眠りについている時間でさえ、Akismet は常時サイトを守り続けます。始めるには、<a href=\"admin.php?page=akismet-key-config\">Akismet 設定ページ</a>に移動してあなたの API キーを設定しましょう。"
 
@@ -161,7 +161,9 @@ msgstr "チェックするコメントはありませんでした。Akismetは�
 msgid "Checking for Spam"
 msgstr "スパムのチェック中"
 
+#. #-#-#-#-#  akismet-code.pot (Akismet Anti-Spam 4.0.1a1)  #-#-#-#-#
 #. Plugin Name of the plugin/theme
+#: class.akismet-admin.php:95 class.akismet-admin.php:98
 msgid "Akismet Anti-Spam"
 msgstr "Akismet Anti-Spam (アンチスパム)"
 
@@ -819,10 +821,6 @@ msgstr "削除中…"
 #: class.akismet-admin.php:127
 msgid "Remove this URL"
 msgstr "この URL を削除"
-
-#: class.akismet-admin.php:95 class.akismet-admin.php:98
-msgid "Akismet"
-msgstr "Akismet"
 
 #: class.akismet-admin.php:72
 msgid "Comment History"
