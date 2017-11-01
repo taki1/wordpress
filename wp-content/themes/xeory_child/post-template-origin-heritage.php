@@ -114,17 +114,25 @@
 				$output .= sprintf('
 		<tr>  
 			<th>%s</th>
-		</tr>
+		</tr>'
+				,$spot->spot_name);
+
+				if (strlen($spot->spot_photo) > 0) {
+					$output .= sprintf('
 		<tr>  
 			<td style="text-align:center">%s</td>
-		</tr>
+		</tr>'
+						,$spot->spot_photo);
+				}
+	
+				if (strlen($spot->spot_description) > 0) {
+					$output .= sprintf('
 		<tr>  
 			<td>%s</td>
 		</tr>'
-				,$spot->spot_name
-				,$spot->spot_photo
-				,$spot->spot_description
-				); 				
+					,$spot->spot_description
+					); 				
+				}
 			}
 		}
 		$output .= '
