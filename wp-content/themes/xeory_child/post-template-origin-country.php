@@ -415,7 +415,7 @@ function get_the_content_country_safety($country_id) {
               AND common_subid < rank
 			WHERE gpi_gti_flg = 1
 			  AND country_id = %s
-			  AND year = (SELECT MAX(year) FROM wp_m_gpi_gti WHERE country_id = %s AND gpi_gti_flg = 1)
+			  AND year = (SELECT MAX(year) FROM $wpdb->m_gpi_gti WHERE country_id = %s AND gpi_gti_flg = 1)
 			GROUP BY country_id, year, rank
 		) gpi
           ON gpi.country_id = c.country_id
@@ -431,7 +431,7 @@ function get_the_content_country_safety($country_id) {
               AND common_subid < rank
 			WHERE gpi_gti_flg = 2
 			  AND country_id = %s
-			  AND year = (SELECT MAX(year) FROM wp_m_gpi_gti WHERE country_id = %s AND gpi_gti_flg = 2)
+			  AND year = (SELECT MAX(year) FROM $wpdb->m_gpi_gti WHERE country_id = %s AND gpi_gti_flg = 2)
 			GROUP BY country_id, year, rank
         ) gti
           ON gti.country_id = c.country_id
