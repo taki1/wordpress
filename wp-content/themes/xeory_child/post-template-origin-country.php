@@ -3,6 +3,7 @@
  *
  * アジア各国 国別情報
  *
+ * 国旗：http://nflagrsign.xrea.jp/
  */
 function get_the_content_country($country_id) {
 	global $wpdb;
@@ -201,7 +202,7 @@ function get_the_content_country_language($country_id) {
            ON ml.common_id = 2
           AND ml.common_subid = l.language_common_subid
 		WHERE l.country_id = %s
-		ORDER BY l.language_common_subid
+		ORDER BY l.language_id, l.language_common_subid
 		"
 	,$country_id
 	);
@@ -306,19 +307,85 @@ function get_the_content_country_plug($country_id) {
 /**
  *
  * アジア各国 国別情報 危険情報
- *
+ * GPI http://visionofhumanity.org/indexes/global-peace-index/
+ * GTI http://visionofhumanity.org/indexes/terrorism-index/
  */
 function get_the_content_country_safety($country_id) {
 	global $wpdb;
 
+	// $sql1 = sprintf("
+	// 	SELECT 
+	// 	  c.country_id
+
+    //     , g2016.gpi2016 AS gpi
+    //     , m2016.common_val AS gpi_color
+    //     , g2015.gti2015 AS gti
+    //     , m2015.common_val AS gti_color
+
+    //     , s.max_level_id
+    //     , m.common_name AS safety_name
+    //     , m.common_val AS safety_color
+	// 	, s.capital_level_id
+    //     , m2.common_name AS safety_name2
+    //     , m2.common_val AS safety_color2
+	// 	, s.safety_url_id AS safety_url 
+	// 	, mu.common_val AS url_format
+
+	// 	FROM  $wpdb->m_country c
+
+    //     LEFT JOIN $wpdb->m_safety s
+    //       ON c.country_id = s.country_id
+	// 	LEFT JOIN $wpdb->m_common m
+	// 	  ON m.common_id = 8
+	// 	 AND m.common_subid = s.max_level_id
+	// 	LEFT JOIN $wpdb->m_common m2
+	// 	  ON m2.common_id = 8
+	// 	 AND m2.common_subid = s.capital_level_id
+
+    //     LEFT JOIN(
+    //         SELECT country_id, gpi2016, MAX(common_subid) AS common_subid
+    //          FROM $wpdb->m_gpi_gti
+    //          LEFT JOIN $wpdb->m_common
+    //            ON common_id = 6
+    //           AND common_subid < gpi2016
+    //         GROUP BY country_id, gpi2016
+    //     ) g2016
+    //       ON g2016.country_id = c.country_id
+    //     LEFT JOIN $wpdb->m_common m2016
+    // 	  ON m2016.common_id = 6
+    //      AND m2016.common_subid = g2016.common_subid
+
+    //     LEFT JOIN(
+    //         SELECT country_id, gti2015, MAX(common_subid) AS common_subid
+    //          FROM $wpdb->m_gpi_gti
+    //         INNER JOIN $wpdb->m_common
+    //            ON common_id = 7
+    //           AND common_subid < gti2015
+    //         GROUP BY country_id, gti2015
+    //     ) g2015
+    //       ON g2015.country_id = c.country_id
+    //     LEFT JOIN $wpdb->m_common m2015
+    //       ON m2015.common_id = 7
+    //      AND m2015.common_subid = g2015.common_subid
+
+	// 	LEFT JOIN $wpdb->m_common mu
+    //       ON mu.common_id = 101
+    //      AND mu.common_subid = 2
+
+	// 	WHERE c.country_id = %s
+	// 	"
+	// ,$country_id
+	// );
 	$sql1 = sprintf("
 		SELECT 
 		  c.country_id
-
-        , g2016.gpi2016 AS gpi
-        , m2016.common_val AS gpi_color
-        , g2015.gti2015 AS gti
-        , m2015.common_val AS gti_color
+		
+		, gpi.year AS gpi_year
+        , gpi.rank AS gpi
+        , m_gpi.common_val AS gpi_color
+		, gti.year AS gti_year
+        , gti.rank AS gti
+        , m_gti.common_val AS gti_color
 
         , s.max_level_id
         , m.common_name AS safety_name
@@ -341,30 +408,36 @@ function get_the_content_country_safety($country_id) {
 		 AND m2.common_subid = s.capital_level_id
 
         LEFT JOIN(
-            SELECT country_id, gpi2016, MAX(common_subid) AS common_subid
+            SELECT country_id, year, rank, MAX(common_subid) AS common_subid
              FROM $wpdb->m_gpi_gti
              LEFT JOIN $wpdb->m_common
                ON common_id = 6
-              AND common_subid < gpi2016
-            GROUP BY country_id, gpi2016
-        ) g2016
-          ON g2016.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2016
-    	  ON m2016.common_id = 6
-         AND m2016.common_subid = g2016.common_subid
+              AND common_subid < rank
+			WHERE gpi_gti_flg = 1
+			  AND country_id = %s
+			  AND year = (SELECT MAX(year) FROM wp_m_gpi_gti WHERE country_id = %s AND gpi_gti_flg = 1)
+			GROUP BY country_id, year, rank
+		) gpi
+          ON gpi.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m_gpi
+    	  ON m_gpi.common_id = 6
+         AND m_gpi.common_subid = gpi.common_subid
 
         LEFT JOIN(
-            SELECT country_id, gti2015, MAX(common_subid) AS common_subid
+            SELECT country_id, year, rank, MAX(common_subid) AS common_subid
              FROM $wpdb->m_gpi_gti
             INNER JOIN $wpdb->m_common
                ON common_id = 7
-              AND common_subid < gti2015
-            GROUP BY country_id, gti2015
-        ) g2015
-          ON g2015.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2015
-          ON m2015.common_id = 7
-         AND m2015.common_subid = g2015.common_subid
+              AND common_subid < rank
+			WHERE gpi_gti_flg = 2
+			  AND country_id = %s
+			  AND year = (SELECT MAX(year) FROM wp_m_gpi_gti WHERE country_id = %s AND gpi_gti_flg = 2)
+			GROUP BY country_id, year, rank
+        ) gti
+          ON gti.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m_gti
+          ON m_gti.common_id = 7
+         AND m_gti.common_subid = gti.common_subid
 
 		LEFT JOIN $wpdb->m_common mu
           ON mu.common_id = 101
@@ -373,8 +446,11 @@ function get_the_content_country_safety($country_id) {
 		WHERE c.country_id = %s
 		"
 	,$country_id
+	,$country_id
+	,$country_id
+	,$country_id
+	,$country_id
 	);
-
 	$results1 = $wpdb->get_results($sql1);
 	$countrys = bzb_object2array($results1);
 	$country = $countrys[0];
@@ -392,8 +468,8 @@ function get_the_content_country_safety($country_id) {
 		<tr>  <th style="white-space:nowrap">外務省ページ</th>  <td style="width:100%%;">%s</td></tr>
 		<tr>  <th style="white-space:nowrap">国内最高危険レベル</th>  <td class="wd100" style="width:100%%;%s">%s</td></tr>
 		<tr>  <th style="white-space:nowrap">首都の危険レベル</th>  <td class="wd100" style="width:100%%;%s">%s</td></tr>
-		<tr>  <th class="orik">世界平和度指数(2016年)</th>  <td class="wd100" style="width:100%%;%s">%s</td></tr>
-		<tr>  <th class="orik">世界テロ指数(2015年)</th>  <td class="wd100" style="width:100%%;%s">%s</td></tr>
+		<tr>  <th class="orik">世界平和度指数%s</th>  <td class="wd100" style="width:100%%;%s">%s</td></tr>
+		<tr>  <th class="orik">世界テロ指数%s</th>  <td class="wd100" style="width:100%%;%s">%s</td></tr>
 	</table>'
 		
 	,$url
@@ -401,8 +477,10 @@ function get_the_content_country_safety($country_id) {
 	,$country['safety_name'] 
 	,$country['safety_color2'] 
 	,$country['safety_name2'] 
+	,(strlen($country['gpi']) > 0) ? "(".$country['gpi_year'] ."年)" : ''
 	,$country['gpi_color'] 
 	,(strlen($country['gpi']) > 0) ? $country['gpi']."位" : 'ー'
+	,(strlen($country['gpi']) > 0) ? "(".$country['gti_year'] ."年)" : ''
 	,$country['gti_color'] 
 	,(strlen($country['gti']) > 0) ? $country['gti']."位" : 'ー'
 	);
@@ -417,54 +495,66 @@ function get_the_content_country_safety($country_id) {
 function get_the_content_country_rate($rate, $english_rate) {
 	global $wpdb;
 
-	$reg = '/<span class=bld>(.*?) JPY<\/span>/';
-	$yen="";
-	$yhtml = sprintf(
-		'https://finance.google.com/finance/converter?a=1&from=%s&to=JPY'
-		,$english_rate);
-
-	if ($yhtml != "") {
-		$get_yhtml = file_get_contents($yhtml);
-		if($get_yhtml === FALSE){
-		} else {
-			if(preg_match($reg, $get_yhtml, $ymatch)){
-				$yen = sprintf('%s円', $ymatch[1]);
-			}
-		}
-	}
-
-	$dhtml = sprintf(
-		'https://finance.google.com/finance/converter?a=1&from=USD&to=%s'
-		,$english_rate);
-
-	$doll="";
-	if ($dhtml != "") {
-		$get_dhtml = file_get_contents($dhtml);
-		if($get_dhtml === FALSE){
-		} else {
-			$reg = sprintf('/<span class=bld>(.*?) %s<\/span>/', $english_rate);
-			if(preg_match($reg, $get_dhtml, $match)){
-				$doll = sprintf('%s%s',$match[1],$rate);
-			}
-		}
-	}
-
 	$output .= sprintf('
 	<h4 class="tbhd4">通貨</h4>  
 	<table cellpadding="3" class="tablecss01">
 		<tr>  <th class="tbth">通貨名</th>  <td>%s</td></tr>
 		<tr>  <th>通貨コード</th>  <td>%s</td></tr>
-		<tr>  <th>1%s</th>  <td>%s</td></tr>
-		<tr>  <th>1ドル</th>  <td>%s</td></tr>
 	</table>'
 	,$rate
 	,$english_rate
-	,$rate
-	,$yen
-	,$doll
 	);
-
+	
 	return $output;
+
+	// $reg = '/<span class=bld>(.*?) JPY<\/span>/';
+	// $yen="";
+	// $yhtml = sprintf(
+	// 	 'https://finance.google.com/finance/converter?a=1&from=%s&to=JPY'
+	// 	,$english_rate);
+
+	// if ($yhtml != "") {
+	// 	$get_yhtml = file_get_contents($yhtml);
+	// 	if($get_yhtml === FALSE){
+	// 	} else {
+	// 		if(preg_match($reg, $get_yhtml, $ymatch)){
+	// 			$yen = sprintf('%s円', $ymatch[1]);
+	// 		}
+	// 	}
+	// }
+
+	// $dhtml = sprintf(
+	// 	'https://finance.google.com/finance/converter?a=1&from=USD&to=%s'
+	// 	,$english_rate);
+
+	// $doll="";
+	// if ($dhtml != "") {
+	// 	$get_dhtml = file_get_contents($dhtml);
+	// 	if($get_dhtml === FALSE){
+	// 	} else {
+	// 		$reg = sprintf('/<span class=bld>(.*?) %s<\/span>/', $english_rate);
+	// 		if(preg_match($reg, $get_dhtml, $match)){
+	// 			$doll = sprintf('%s%s',$match[1],$rate);
+	// 		}
+	// 	}
+	// }
+
+	// $output .= sprintf('
+	// <h4 class="tbhd4">通貨</h4>  
+	// <table cellpadding="3" class="tablecss01">
+	// 	<tr>  <th class="tbth">通貨名</th>  <td>%s</td></tr>
+	// 	<tr>  <th>通貨コード</th>  <td>%s</td></tr>
+	// 	<tr>  <th>1%s</th>  <td>%s</td></tr>
+	// 	<tr>  <th>1ドル</th>  <td>%s</td></tr>
+	// </table>'
+	// ,$rate
+	// ,$english_rate
+	// ,$rate
+	// ,$yen
+	// ,$doll
+	// );
+	
+	// return $output;
 }
 
 /**

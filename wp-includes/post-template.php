@@ -3040,9 +3040,11 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 	if ( $more && $strip_teaser && $has_teaser )
 		$teaser = '';
 
+	// WordPress ver更新時、戻す (S)
 	// $output .= $teaser;
 	$output .= get_the_content_page($post->post_name);
 	if ( empty($output) ) $output .= $teaser;
+	// WordPress ver更新時、戻す (E)
 	
 	// switch ($post->post_name) {
 	// 	case "city":

@@ -1025,65 +1025,74 @@ function get_the_content_gpi() {
 	$areas = get_area_cnt($area_no);
 
 	$sql = sprintf("
-		SELECT 
-		  c.country_id
-		, c.country_name
-		, c.area_id
-		, a.area_name
-        , g2016.gpi2016
-        , m2016.common_val AS color2016
-        , g2015.gpi2015
-        , m2015.common_val AS color2015
-        , g2014.gpi2014
-        , m2014.common_val AS color2014
- 		 FROM  $wpdb->m_country c
-		INNER JOIN $wpdb->m_area a
-		   ON a.area_id = c.area_id
-		  AND a.area_no = %s
-        LEFT JOIN(
-            SELECT country_id, gpi2016, MAX(common_subid) AS common_subid
-             FROM $wpdb->m_gpi_gti
-            INNER JOIN $wpdb->m_common
-               ON common_id = 6
-              AND common_subid < gpi2016
-            GROUP BY country_id, gpi2016
-        ) g2016
-          ON g2016.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2016
-          ON m2016.common_id = 6
-         AND m2016.common_subid = g2016.common_subid
+	SELECT 
+	c.country_id
+  , c.country_name
+  , c.area_id
+  , a.area_name
+  , gpi1.year AS year1
+  , gpi1.rank AS gpi1
+  , m1.common_val AS color1
+  , gpi2.year AS year2
+  , gpi2.rank AS gpi2
+  , m2.common_val AS color2
+  , gpi3.year AS year3
+  , gpi3.rank AS gpi3
+  , m3.common_val AS color3
+	FROM  $wpdb->m_country c
+  INNER JOIN $wpdb->m_area a
+	 ON a.area_id = c.area_id
+	AND a.area_no = %s
+  LEFT JOIN(
+	  SELECT country_id, year, rank, MAX(common_subid) AS common_subid
+	   FROM $wpdb->m_gpi_gti
+	  INNER JOIN $wpdb->m_common
+		 ON common_id = 6
+		AND common_subid < rank
+	  WHERE gpi_gti_flg = 1
+		AND year = (SELECT MAX(year) FROM $wpdb->m_gpi_gti WHERE gpi_gti_flg = 1)
+	  GROUP BY country_id, year, rank
+  ) gpi1
+	ON gpi1.country_id = c.country_id
+  LEFT JOIN $wpdb->m_common m1
+	ON m1.common_id = 6
+   AND m1.common_subid = gpi1.common_subid
 
-        LEFT JOIN(
-            SELECT country_id, gpi2015, MAX(common_subid) AS common_subid
-             FROM $wpdb->m_gpi_gti
-            INNER JOIN $wpdb->m_common
-               ON common_id = 6
-              AND common_subid < gpi2015
-            GROUP BY country_id,gpi2015
-        ) g2015
-          ON g2015.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2015
-          ON m2015.common_id = 6
-         AND m2015.common_subid = g2015.common_subid
+  LEFT JOIN(
+	  SELECT country_id, year, rank, MAX(common_subid) AS common_subid
+	   FROM $wpdb->m_gpi_gti
+	  INNER JOIN $wpdb->m_common
+		 ON common_id = 6
+		AND common_subid < rank
+	  WHERE gpi_gti_flg = 1
+		AND year = (SELECT MAX(year) - 1 FROM $wpdb->m_gpi_gti WHERE gpi_gti_flg = 1)
+	  GROUP BY country_id, year, rank
+  ) gpi2
+	ON gpi2.country_id = c.country_id
+  LEFT JOIN $wpdb->m_common m2
+	ON m2.common_id = 6
+   AND m2.common_subid = gpi2.common_subid
 
-        LEFT JOIN(
-            SELECT country_id, gpi2014, MAX(common_subid) AS common_subid
-             FROM $wpdb->m_gpi_gti
-            INNER JOIN $wpdb->m_common
-               ON common_id = 6
-              AND common_subid < gpi2014
-            GROUP BY country_id,gpi2014
-        ) g2014
-          ON g2014.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2014
-          ON m2014.common_id = 6
-         AND m2014.common_subid = g2014.common_subid
-		ORDER BY c.country_id
+  LEFT JOIN(
+	  SELECT country_id, year, rank, MAX(common_subid) AS common_subid
+	   FROM $wpdb->m_gpi_gti
+	  INNER JOIN $wpdb->m_common
+		 ON common_id = 6
+		AND common_subid < rank
+	  WHERE gpi_gti_flg = 1
+		AND year = (SELECT MAX(year) - 2 FROM $wpdb->m_gpi_gti WHERE gpi_gti_flg = 1)
+	  GROUP BY country_id,year, rank
+  ) gpi3
+	ON gpi3.country_id = c.country_id
+  LEFT JOIN $wpdb->m_common m3
+	ON m3.common_id = 6
+   AND m3.common_subid = gpi3.common_subid
+  ORDER BY c.country_id
 	", $area_no);
 	$results = $wpdb->get_results($sql);
 	$peaces = bzb_object2array($results);
 
-	$output = '
+	$output = sprintf('
 		<h4>今回は、アジア各国の世界平和度指数の一覧をまとめてみました。</h4>
 		<p style="font-weight:bold;">
 			世界平和度指数(Global Peace Index)は、163カ国の各国がどれくらい平和であるかを表す指標とされています。<br/>
@@ -1094,10 +1103,14 @@ function get_the_content_gpi() {
 			<tr>
 				<th class="tab_no" width="10px" style="text-align:center">地域</th>
 				<th>国名</th>
-				<th>2016年</th>
-				<th>2015年</th>
-				<th>2014年</th>
-			</tr>';
+				<th>%s年</th>
+				<th>%s年</th>
+				<th>%s年</th>
+			</tr>'
+	,$peaces[0]['year1']
+	,$peaces[0]['year2']
+	,$peaces[0]['year3']
+	);
 	
 	$row = 0;
 	$areaid = "";
@@ -1122,12 +1135,12 @@ function get_the_content_gpi() {
 				<td style="text-align:right;%s">%s</td>
 			</tr>'
 		,$peace['country_name'] 
-		,$peace['color2016'] 
-		,(strlen($peace['gpi2016']) > 0) ? $peace['gpi2016']."位" : 'ー'
-		,$peace['color2015'] 
-		,(strlen($peace['gpi2015']) > 0) ? $peace['gpi2015']."位" : 'ー'
-		,$peace['color2014'] 
-		,(strlen($peace['gpi2014']) > 0) ? $peace['gpi2014']."位" : 'ー');
+		,$peace['color1'] 
+		,(strlen($peace['gpi1']) > 0) ? $peace['gpi1']."位" : 'ー'
+		,$peace['color2'] 
+		,(strlen($peace['gpi2']) > 0) ? $peace['gpi2']."位" : 'ー'
+		,$peace['color3'] 
+		,(strlen($peace['gpi3']) > 0) ? $peace['gpi3']."位" : 'ー');
 	}
 
 	$output .= '
@@ -1153,66 +1166,75 @@ function get_the_content_gti() {
 		, c.country_name
 		, c.area_id
 		, a.area_name
-        , g2015.gti2015
-        , m2015.common_val AS color2015
-        , g2014.gti2014
-        , m2014.common_val AS color2014
-        , g2013.gti2013
-        , m2013.common_val AS color2013
- 		 FROM  $wpdb->m_country c
+		, gti1.year AS year1
+		, gti1.rank AS gti1
+		, m1.common_val AS color1
+		, gti2.year AS year2
+		, gti2.rank AS gti2
+		, m2.common_val AS color2
+		, gti3.year AS year3
+		, gti3.rank AS gti3
+		, m3.common_val AS color3
+		FROM  $wpdb->m_country c
 		INNER JOIN $wpdb->m_area a
 		   ON a.area_id = c.area_id
 		  AND a.area_no = %s
 
         LEFT JOIN(
-            SELECT country_id, gti2015, MAX(common_subid) AS common_subid
-             FROM $wpdb->m_gpi_gti
-            INNER JOIN $wpdb->m_common
-               ON common_id = 7
-              AND common_subid < gti2015
-            GROUP BY country_id, gti2015
-        ) g2015
-          ON g2015.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2015
-          ON m2015.common_id = 7
-         AND m2015.common_subid = g2015.common_subid
+			SELECT country_id, year, rank, MAX(common_subid) AS common_subid
+			FROM $wpdb->m_gpi_gti
+		   INNER JOIN $wpdb->m_common
+			  ON common_id = 7
+			 AND common_subid < rank
+		   WHERE gpi_gti_flg = 2
+			 AND year = (SELECT MAX(year) FROM $wpdb->m_gpi_gti WHERE gpi_gti_flg = 2)
+		   GROUP BY country_id, year, rank	 
+        ) gti1
+          ON gti1.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m1
+          ON m1.common_id = 7
+         AND m1.common_subid = gti1.common_subid
 
         LEFT JOIN(
-            SELECT country_id, gti2014, MAX(common_subid) AS common_subid
-             FROM $wpdb->m_gpi_gti
-            INNER JOIN $wpdb->m_common
-               ON common_id = 7
-              AND common_subid < gti2014
-            GROUP BY country_id, gti2014
-        ) g2014
-          ON g2014.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2014
-          ON m2014.common_id = 7
-         AND m2014.common_subid = g2014.common_subid
+			SELECT country_id, year, rank, MAX(common_subid) AS common_subid
+			FROM $wpdb->m_gpi_gti
+		   INNER JOIN $wpdb->m_common
+			  ON common_id = 7
+			 AND common_subid < rank
+		   WHERE gpi_gti_flg = 2
+			 AND year = (SELECT MAX(year) - 1 FROM $wpdb->m_gpi_gti WHERE gpi_gti_flg = 2)
+		   GROUP BY country_id, year, rank	 
+        ) gti2
+          ON gti2.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m2
+          ON m2.common_id = 7
+         AND m2.common_subid = gti2.common_subid
 
         LEFT JOIN(
-            SELECT country_id, gti2013, MAX(common_subid) AS common_subid
-             FROM $wpdb->m_gpi_gti
-            INNER JOIN $wpdb->m_common
-               ON common_id = 7
-              AND common_subid < gti2013
-            GROUP BY country_id, gti2013
-        ) g2013
-          ON g2013.country_id = c.country_id
-        LEFT JOIN $wpdb->m_common m2013
-          ON m2013.common_id = 7
-         AND m2013.common_subid = g2013.common_subid
+			SELECT country_id, year, rank, MAX(common_subid) AS common_subid
+			FROM $wpdb->m_gpi_gti
+		   INNER JOIN $wpdb->m_common
+			  ON common_id = 7
+			 AND common_subid < rank
+		   WHERE gpi_gti_flg = 2
+			 AND year = (SELECT MAX(year) - 2 FROM $wpdb->m_gpi_gti WHERE gpi_gti_flg = 2)
+		   GROUP BY country_id, year, rank	 
+        ) gti3
+          ON gti3.country_id = c.country_id
+        LEFT JOIN $wpdb->m_common m3
+          ON m3.common_id = 7
+         AND m3.common_subid = gti3.common_subid
 
 		ORDER BY c.country_id
 	", $area_no);
 	$results = $wpdb->get_results($sql);
 	$peaces = bzb_object2array($results);
 
-	$output = '
+	$output = sprintf('
 		<h4>今回は、アジア各国の世界テロ指数の一覧をまとめてみました。</h4>
 		<p style="font-weight:bold;">
 			世界テロ指数(Global Terrorism Index)は、163カ国の各国がどれくらいテロの危険度があるかを表す指標とされています。<br/>
-			2015年は、130位が同率最下位、2014年・2013年は、124位が同率最下位<br/>
+			<!--2015年は、130位が同率最下位、2014年・2013年は、124位が同率最下位<br/>-->
 			テロ指数は、テロ事件の発生回数、死者数などの指標から決められています。<br/>
 			<a href="http://static.visionofhumanity.org/#/page/indexes/terrorism-index" target="_blank">詳細はこちら</a>
 		</p>
@@ -1220,11 +1242,15 @@ function get_the_content_gti() {
 			<tr>
 				<th class="tab_no" width="10px" style="text-align:center">地域</th>
 				<th>国名</th>
-				<th>2015年</th>
-				<th>2014年</th>
-				<th>2013年</th>
-			</tr>';
-	
+				<th>%s年</th>
+				<th>%s年</th>
+				<th>%s年</th>
+			</tr>'
+	,$peaces[0]['year1']
+	,$peaces[0]['year2']
+	,$peaces[0]['year3']
+	);
+			
 	$row = 0;
 	$areaid = "";
 	foreach ($peaces as $peace) {
@@ -1248,12 +1274,12 @@ function get_the_content_gti() {
 				<td style="text-align:right;%s">%s</td>
 			</tr>'
 		,$peace['country_name'] 
-		,$peace['color2015'] 
-		,(strlen($peace['gti2015']) > 0) ? $peace['gti2015']."位" : 'ー'
-		,$peace['color2014'] 
-		,(strlen($peace['gti2014']) > 0) ? $peace['gti2014']."位" : 'ー'
-		,$peace['color2013'] 
-		,(strlen($peace['gti2013']) > 0) ? $peace['gti2013']."位" : 'ー'
+		,$peace['color1'] 
+		,(strlen($peace['gti1']) > 0) ? $peace['gti1']."位" : 'ー'
+		,$peace['color2'] 
+		,(strlen($peace['gti2']) > 0) ? $peace['gti2']."位" : 'ー'
+		,$peace['color3'] 
+		,(strlen($peace['gti3']) > 0) ? $peace['gti3']."位" : 'ー'
 		);
 	}
 
